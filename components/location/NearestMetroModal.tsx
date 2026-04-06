@@ -6,14 +6,21 @@ interface NearestMetroModalProps {
   station: { name: string; distance: number; isHighAccuracy: boolean } | null;
   error: string | null;
   onClose: () => void;
+  onSelect: (name: string) => void;
 }
 
-export default function NearestMetroModal({ station, error, onClose }: NearestMetroModalProps) {
+export default function NearestMetroModal({ station, error, onClose, onSelect }: NearestMetroModalProps) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     setIsAnimating(true);
   }, []);
+
+  const handleSelect = () => {
+    if (station) {
+      onSelect(station.name);
+    }
+  };
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isAnimating ? "opacity-100" : "opacity-0"}`}>
@@ -59,7 +66,15 @@ export default function NearestMetroModal({ station, error, onClose }: NearestMe
             </div>
           ) : null}
 
-          <div className="pt-4 w-full">
+          <div className="flex flex-col gap-3 w-full pt-4">
+            {!error && station && (
+              <button
+                onClick={handleSelect}
+                className="w-full bg-brutal-green font-heading text-[10px] text-black border-2 border-black py-4 shadow-neo hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer uppercase tracking-widest"
+              >
+                USE THIS STATION
+              </button>
+            )}
             <button
               onClick={onClose}
               className="w-full bg-brutal-yellow font-heading text-[10px] text-black border-2 border-black py-4 shadow-neo hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer uppercase tracking-widest"
@@ -72,4 +87,3 @@ export default function NearestMetroModal({ station, error, onClose }: NearestMe
     </div>
   );
 }
-

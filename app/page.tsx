@@ -1,28 +1,104 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import SearchContainer from "@/components/search/SearchContainer";
 import LocationSystem from "@/components/location/LocationSystem";
+import BottomDock, { NavItem } from "@/components/navigation/BottomDock";
+import PersonalizeModal from "@/components/personalization/PersonalizeModal";
+import CommunityModal from "@/components/community/CommunityModal";
 
 export default function Home() {
+  const [fromStation, setFromStation] = useState("");
+  const [toStation, setToStation] = useState("");
+  
+  // Dock & Modal States
+  const [activeTab, setActiveTab] = useState<NavItem>("home");
+  const [showPersonalizeModal, setShowPersonalizeModal] = useState(false);
+  const [showCommunityModal, setShowCommunityModal] = useState(false);
+  
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // FIRST VISIT DETECTION
+    const isPersonalized = localStorage.getItem("libre_personalized");
+    
+    if (isPersonalized === null) {
+      const timer = setTimeout(() => {
+        handleTabChange("personalize");
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleTabChange = (tab: NavItem) => {
+    setActiveTab(tab);
+    
+    if (tab === "home") {
+      setShowPersonalizeModal(false);
+      setShowCommunityModal(false);
+    } else if (tab === "community") {
+      setShowPersonalizeModal(false);
+      setShowCommunityModal(true);
+    } else if (tab === "personalize") {
+      setShowCommunityModal(false);
+      setShowPersonalizeModal(true);
+    }
+  };
+
+  const closePersonalizeModal = () => {
+    localStorage.setItem("libre_personalized", "true");
+    handleTabChange("home");
+  };
+
+  const handlePersonalizeSave = (type: "student" | "tourist") => {
+    localStorage.setItem("libre_user_type", type);
+    closePersonalizeModal();
+  };
+  
+  const closeCommunityModal = () => {
+    handleTabChange("home");
+  };
+
+  const handleUpdateFrom = (station: string) => {
+    setFromStation(station.toUpperCase());
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-[60vh] py-12">
-      <SearchContainer />
+    <div className="flex flex-col flex-1 items-center justify-center min-h-[60vh] py-12 pb-24">
+      <SearchContainer 
+        from={fromStation} 
+        setFrom={setFromStation} 
+        to={toStation} 
+        setTo={setToStation} 
+      />
       
-      {/* Location feature below the main control panel */}
-      <LocationSystem />
+      {/* Location feature passed a callback to update search fields */}
+      <LocationSystem onStationFound={handleUpdateFrom} />
       
-      {/* Optional: Subtle Welcome Text beneath */}
-      <div className="mt-12 space-y-4 text-center animate-in fade-in slide-in-from-top-2">
-        <h1 className="text-4xl font-heading opacity-80 tracking-tighter uppercase text-white/90">
-          Libre Metro
-        </h1>
-        <p className="font-heading text-xs uppercase tracking-widest text-[#FFD23F] opacity-80">
-          Intelligence in Transit // Delhi NCR
-        </p>
-      </div>
+
+      <BottomDock 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange} 
+      />
+
+      {/* MODALS */}
+      {mounted && showPersonalizeModal && (
+        <PersonalizeModal 
+          onClose={closePersonalizeModal} 
+          onSave={handlePersonalizeSave} 
+        />
+      )}
+      
+      {mounted && showCommunityModal && (
+        <CommunityModal 
+          onClose={closeCommunityModal} 
+        />
+      )}
     </div>
   );
 }
+
 
 
 

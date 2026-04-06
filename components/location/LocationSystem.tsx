@@ -19,7 +19,7 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c;
 }
 
-export default function LocationSystem() {
+export default function LocationSystem({ onStationFound }: { onStationFound: (s: string) => void }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nearestStation, setNearestStation] = useState<{ name: string; distance: number; isHighAccuracy: boolean } | null>(null);
@@ -46,7 +46,7 @@ export default function LocationSystem() {
 
     // 2. Parse CSV dataset
     const lines = datasetText.split("\n").filter(line => line.trim() !== "");
-    const headers = lines.shift(); // remove headers row: stop_id,stop_code,stop_name,stop_desc,stop_lat,stop_lon
+    lines.shift(); // remove headers row
 
     const allStations = lines.map(line => {
       const fields = line.split(",");
@@ -64,7 +64,6 @@ export default function LocationSystem() {
       return;
     }
 
-    // 3. MANDATORY Options
     const geoOptions = {
       enableHighAccuracy: true,
       timeout: 10000,
@@ -77,9 +76,6 @@ export default function LocationSystem() {
         const userLon = position.coords.longitude;
         const accuracy = position.coords.accuracy;
         
-        console.log(`[GEO DEBUG] User Location -> Lat: ${userLat}, Lon: ${userLon}, Accuracy: ${accuracy}m`);
-
-        // 4. Compute Distances
         const stationsWithDistances = allStations.map((station) => {
           const rawDistance = getDistance(userLat, userLon, station.lat, station.lon);
           return {
@@ -88,14 +84,8 @@ export default function LocationSystem() {
           };
         });
 
-        // 5. Find nearest (Sort Ascending)
         stationsWithDistances.sort((a, b) => a.distance - b.distance);
         const closest = stationsWithDistances[0];
-        
-        if (closest) {
-          console.log(`[GEO DEBUG] Closest Station -> Name: ${closest.name}, Distance: ${closest.distance} km`);
-        }
-
         const isHighAccuracy = accuracy <= 50;
 
         setNearestStation({ 
@@ -124,6 +114,10 @@ export default function LocationSystem() {
       {isModalOpen && (
         <NearestMetroModal
           onClose={() => setIsModalOpen(false)}
+          onSelect={(name) => {
+            onStationFound(name);
+            setIsModalOpen(false);
+          }}
           // @ts-ignore
           station={nearestStation}
           error={error}
@@ -132,6 +126,3 @@ export default function LocationSystem() {
     </>
   );
 }
-
-
-

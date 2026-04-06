@@ -26,7 +26,6 @@ export const metadata: Metadata = {
   description: "A clean, structured, and modern system-like interface.",
 };
 
-import PersonalizeSystem from "@/components/personalization/PersonalizeSystem";
 
 export default function RootLayout({
   children,
@@ -46,8 +45,7 @@ export default function RootLayout({
           </div>
         </main>
         
-        {/* Personalization system handled via browser storage logic */}
-        <PersonalizeSystem />
+
       </body>
     </html>
   );

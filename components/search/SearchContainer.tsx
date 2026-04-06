@@ -34,9 +34,17 @@ function getLineColor(lines: string[] | undefined) {
   return LINE_COLORS[lines[0]] || LINE_COLORS.blue;
 }
 
-export default function SearchContainer() {
-  const [fromStation, setFromStation] = useState("");
-  const [toStation, setToStation] = useState("");
+export default function SearchContainer({ 
+  from, 
+  setFrom, 
+  to, 
+  setTo 
+}: { 
+  from: string; 
+  setFrom: (s: string) => void; 
+  to: string; 
+  setTo: (s: string) => void; 
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [routeResult, setRouteResult] = useState<MetroRouteResponse | null>(null);
@@ -74,14 +82,15 @@ export default function SearchContainer() {
   }, []);
 
   const handleSwap = () => {
-    setFromStation(toStation);
-    setToStation(fromStation);
+    const temp = from;
+    setFrom(to);
+    setTo(temp);
     setActiveDropdown(null);
   };
 
   const handleSearch = useCallback(async () => {
     setActiveDropdown(null);
-    if (!fromStation.trim() || !toStation.trim()) {
+    if (!from.trim() || !to.trim()) {
       setError("Please enter both source and destination stations.");
       setRouteResult(null);
       return;
@@ -92,7 +101,7 @@ export default function SearchContainer() {
     setRouteResult(null);
 
     try {
-      const response = await fetch(`/api/dmrc?type=route&from=${encodeURIComponent(fromStation.trim())}&to=${encodeURIComponent(toStation.trim())}`);
+      const response = await fetch(`/api/dmrc?type=route&from=${encodeURIComponent(from.trim())}&to=${encodeURIComponent(to.trim())}`);
       const data: MetroRouteResponse = await response.json();
 
       if (data.status !== 200) {
@@ -110,7 +119,7 @@ export default function SearchContainer() {
     } finally {
       setLoading(false);
     }
-  }, [fromStation, toStation]);
+  }, [from, to]);
 
   const getFilteredStations = (query: string) => {
     if (!query) return [];
@@ -173,9 +182,9 @@ export default function SearchContainer() {
             <div className="h-16 w-full bg-white border-2 border-black flex items-center px-4 relative focus-within:shadow-neo transition-all">
               <input 
                 type="text" 
-                value={fromStation}
+                value={from}
                 onChange={(e) => {
-                  setFromStation(e.target.value);
+                  setFrom(e.target.value);
                   setActiveDropdown("from");
                 }}
                 onFocus={() => setActiveDropdown("from")}
@@ -186,15 +195,15 @@ export default function SearchContainer() {
             </div>
             
             {/* FROM AUTOCOMPLETE */}
-            {activeDropdown === "from" && fromStation.length > 0 && (
+            {activeDropdown === "from" && from.length > 0 && (
               <div className="absolute top-[80px] left-0 w-full bg-white border-2 border-black shadow-neo flex flex-col z-50 max-h-[200px] overflow-y-auto">
-                {getFilteredStations(fromStation).length > 0 ? (
-                  getFilteredStations(fromStation).map((station, i) => (
+                {getFilteredStations(from).length > 0 ? (
+                  getFilteredStations(from).map((station, i) => (
                     <div 
                       key={i} 
                       className="px-4 py-3 border-b-2 border-black hover:bg-brutal-blue cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors"
                       onClick={() => {
-                        setFromStation(station);
+                        setFrom(station);
                         setActiveDropdown(null);
                       }}
                     >
@@ -227,9 +236,9 @@ export default function SearchContainer() {
             <div className="h-16 w-full bg-white border-2 border-black flex items-center px-4 focus-within:shadow-neo transition-all relative">
               <input 
                 type="text" 
-                value={toStation}
+                value={to}
                 onChange={(e) => {
-                  setToStation(e.target.value);
+                  setTo(e.target.value);
                   setActiveDropdown("to");
                 }}
                 onFocus={() => setActiveDropdown("to")}
@@ -240,15 +249,15 @@ export default function SearchContainer() {
             </div>
             
             {/* TO AUTOCOMPLETE */}
-            {activeDropdown === "to" && toStation.length > 0 && (
+            {activeDropdown === "to" && to.length > 0 && (
               <div className="absolute top-[80px] left-0 w-full bg-white border-2 border-black shadow-neo flex flex-col z-50 max-h-[200px] overflow-y-auto">
-                {getFilteredStations(toStation).length > 0 ? (
-                  getFilteredStations(toStation).map((station, i) => (
+                {getFilteredStations(to).length > 0 ? (
+                  getFilteredStations(to).map((station, i) => (
                     <div 
                       key={i} 
                       className="px-4 py-3 border-b-2 border-black hover:bg-brutal-blue cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors"
                       onClick={() => {
-                        setToStation(station);
+                        setTo(station);
                         setActiveDropdown(null);
                       }}
                     >
@@ -308,11 +317,11 @@ export default function SearchContainer() {
               {/* FROM → TO summary */}
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="font-heading text-[10px] bg-brutal-green border-2 border-black px-3 py-1.5 shadow-neo uppercase tracking-wider">
-                  {fromStation}
+                  {from}
                 </span>
                 <ArrowRight className="h-4 w-4 text-black shrink-0" />
                 <span className="font-heading text-[10px] bg-brutal-pink border-2 border-black px-3 py-1.5 shadow-neo uppercase tracking-wider">
-                  {toStation}
+                  {to}
                 </span>
               </div>
 

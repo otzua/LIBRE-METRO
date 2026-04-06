@@ -33,7 +33,14 @@ export default function PersonalizeModal({ onClose, onSave }: PersonalizeModalPr
   useEffect(() => {
     // Light fade-in animation trigger
     setIsAnimating(true);
-  }, []);
+    
+    // ESC key support
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handleContinue = () => {
     if (selected) {
