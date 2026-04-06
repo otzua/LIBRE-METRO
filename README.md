@@ -1,37 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Libre Metro - Delhi Metro API Usage Guide
 
-## Getting Started
+This project provides an easy way to interact with the Delhi Metro Shortest Path API through a built-in Next.js proxy route and a simple utility wrapper.
 
-First, run the development server:
-haa bhai
+## How to Get the Shortest Route
+To calculate the path between two stations, you can use the api/dmrc endpoint. You must specify the type as route and provide both a source and a destination station.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Example API URL for your test:
+http://localhost:3001/api/dmrc?type=route&from=Tughlakabad&to=Vishwavidyalaya
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This will return the travel time, the full path of stations, and any interchanges required for the journey.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How to Get a List of Stations for a Line
+To see all station names for a specific metro line, use the same api/dmrc endpoint but set the type to stations and provide a line name.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Example for Blue Line:
+http://localhost:3001/api/dmrc?type=stations&line=blue
 
-## Learn More
+## Important Information about Station Names
+When searching for routes, make sure to use the exact station names. The API is case-insensitive, but extra spaces should be avoided. For the best experience, reference the official station list.
 
-To learn more about Next.js, take a look at the following resources:
+## Core Features and Logic
+The system automatically accounts for the 9-minute penalty during interchanges between different lines to accurately reflect real-world travel time.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Setting up your Backend URL
+Ensure your .env.local file is configured with the correct ngrok or localhost address for your Metro API backend using the API and NEXT_PUBLIC_METRO_API_URL variables.
