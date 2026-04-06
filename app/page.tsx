@@ -51,8 +51,7 @@ export default function Home() {
     handleTabChange("home");
   };
 
-  const handlePersonalizeSave = (type: "student" | "tourist") => {
-    localStorage.setItem("libre_user_type", type);
+  const handlePersonalizeSave = (_type: "student" | "tourist") => {
     closePersonalizeModal();
   };
   
