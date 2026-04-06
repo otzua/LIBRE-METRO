@@ -19,15 +19,23 @@ export default function ProfileButton({ inDock = false, onOpenAuth }: ProfileBut
   useEffect(() => {
     // Check current session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      
+      // Proactively clear hash if user is logged in
+      if (currentUser && typeof window !== "undefined" && window.location.hash) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
     });
 
     // Listen for auth state changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Clear the hash from URL after successful sign-in
-        if (window.location.hash) {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      
+      if (currentUser) {
+        // Clear the hash from URL after successful sign-in (OAuth redirect)
+        if (typeof window !== "undefined" && window.location.hash) {
           window.history.replaceState(null, "", window.location.pathname + window.location.search);
         }
       }
@@ -72,7 +80,7 @@ export default function ProfileButton({ inDock = false, onOpenAuth }: ProfileBut
       {user ? (
         /* ── LOGGED-IN STATE ── */
         <>
-          <button
+            <button
             onClick={() => setShowDropdown((v) => !v)}
             className={`w-full h-full flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 cursor-pointer select-none`}
             aria-label="Account menu"
@@ -102,14 +110,14 @@ export default function ProfileButton({ inDock = false, onOpenAuth }: ProfileBut
                 </span>
               )}
             </div>
-            <span className="text-[8px] font-heading tracking-[0.1em] uppercase text-black/60 font-bold group-hover:text-black">
+            <span className="text-[8px] font-heading tracking-widest uppercase text-black/60 font-bold group-hover:text-black">
               Account
             </span>
           </button>
 
           {/* DROPDOWN - OPENS UPWARDS */}
           {showDropdown && (
-            <div className={`absolute right-0 bottom-[calc(100%+12px)] w-40 bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-[100]`}>
+            <div className={`absolute right-0 bottom-[calc(100%+12px)] w-40 bg-white border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-100`}>
               {/* User info */}
               <div className="px-4 py-2 border-b-[3px] border-black bg-black/5">
                 <p className="font-heading text-[7px] text-black/40 uppercase tracking-widest font-bold truncate">
