@@ -6,6 +6,7 @@ import LocationSystem from "@/components/location/LocationSystem";
 import BottomDock, { NavItem } from "@/components/navigation/BottomDock";
 import PersonalizeModal from "@/components/personalization/PersonalizeModal";
 import CommunityTab from "@/components/community/CommunityTab";
+import AuthModal from "@/components/auth/AuthModal";
 
 export default function Home() {
   const [fromStation, setFromStation] = useState("");
@@ -15,6 +16,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<NavItem>("home");
   const [showPersonalizeModal, setShowPersonalizeModal] = useState(false);
   const [showCommunity, setShowCommunity] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   const [mounted, setMounted] = useState(false);
 
@@ -32,15 +34,18 @@ export default function Home() {
   }, []);
 
   const handleTabChange = (tab: NavItem) => {
-    setActiveTab(tab);
+    // TOGGLE LOGIC: If same tab clicked, go back to home
+    const targetTab = (tab === activeTab && tab !== "home") ? "home" : tab;
     
-    if (tab === "home") {
+    setActiveTab(targetTab);
+    
+    if (targetTab === "home") {
       setShowPersonalizeModal(false);
       setShowCommunity(false);
-    } else if (tab === "community") {
+    } else if (targetTab === "community") {
       setShowPersonalizeModal(false);
       setShowCommunity(true);
-    } else if (tab === "personalize") {
+    } else if (targetTab === "personalize") {
       setShowCommunity(false);
       setShowPersonalizeModal(true);
     }
@@ -78,7 +83,8 @@ export default function Home() {
 
       <BottomDock 
         activeTab={activeTab} 
-        onTabChange={handleTabChange} 
+        onTabChange={handleTabChange}
+        onOpenAuth={() => setShowAuthModal(true)}
       />
 
       {/* MODALS */}
@@ -94,6 +100,11 @@ export default function Home() {
         <CommunityTab 
           onClose={closeCommunity} 
         />
+      )}
+
+      {/* GLOBAL AUTH MODAL - CENTERED */}
+      {mounted && showAuthModal && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
       )}
     </div>
   );

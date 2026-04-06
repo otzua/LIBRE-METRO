@@ -103,11 +103,13 @@ export default function PersonalizeModal({ onClose, onSave }: PersonalizeModalPr
   /* ─── SHELL ─── */
   return (
     <div
+      onClick={onClose}
       className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-8 overflow-y-auto transition-opacity duration-300 ${
         isAnimating ? "opacity-100" : "opacity-0"
       }`}
     >
       <div
+        onClick={(e) => e.stopPropagation()}
         className={`w-full max-w-lg bg-background border-[3px] border-black shadow-neo-lg transition-transform duration-300 ${
           isAnimating ? "scale-100" : "scale-95"
         }`}

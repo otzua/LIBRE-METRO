@@ -40,11 +40,6 @@ export default function RootLayout({
     >
 
       <body className="min-h-full bg-background text-foreground font-body selection:bg-brutal-yellow selection:text-black overflow-x-hidden">
-        {/* FIXED PROFILE BUTTON — top-right corner */}
-        <div className="fixed top-4 right-4 z-50">
-          <ProfileButton />
-        </div>
-
         <main className="mx-auto w-full max-w-[540px] px-4 py-8 md:px-6">
           <div className="flex flex-col gap-12">
             {children}
