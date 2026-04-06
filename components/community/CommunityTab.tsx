@@ -141,23 +141,37 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
     else       setShowComingSoon(true);
   };
 
-  const handleVote = (id: string, direction: "up" | "down") => {
+  const handleVote = async (id: string, direction: "up" | "down") => {
+    const route = routes.find((r) => r.id === id);
+    if (!route) return;
+
+    let newVotes = route.votes;
+    let newUserVote: "up" | "down" | null = direction;
+
+    if (route.userVote === direction) {
+      newVotes = direction === "up" ? route.votes - 1 : route.votes + 1;
+      newUserVote = null;
+    } else if (route.userVote === null) {
+      newVotes = direction === "up" ? route.votes + 1 : route.votes - 1;
+    } else {
+      newVotes = direction === "up" ? route.votes + 2 : route.votes - 2;
+    }
+
     setRoutes((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        let newVotes   = r.votes;
-        let newUserVote: "up" | "down" | null = direction;
-        if (r.userVote === direction) {
-          newVotes    = direction === "up" ? r.votes - 1 : r.votes + 1;
-          newUserVote = null;
-        } else if (r.userVote === null) {
-          newVotes = direction === "up" ? r.votes + 1 : r.votes - 1;
-        } else {
-          newVotes = direction === "up" ? r.votes + 2 : r.votes - 2;
-        }
-        return { ...r, votes: newVotes, userVote: newUserVote };
-      })
+      prev.map((r) =>
+        r.id === id ? { ...r, votes: newVotes, userVote: newUserVote } : r
+      )
     );
+
+    const { error } = await supabase
+      .from("suggestions")
+      .update({ votes: newVotes })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Failed to update votes in Supabase:", error);
+      // Revert optimism if needed (optional)
+    }
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
