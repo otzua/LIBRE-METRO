@@ -213,6 +213,15 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
             </span>
           </div>
 
+          {/* DEBUG INDICATOR FOR ENV VARS */}
+          <div className="mt-2 text-center">
+            {(!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) && (
+              <p className="font-heading text-[7px] text-brutal-pink uppercase font-black tracking-widest animate-pulse">
+                ENV_VARS_MISSING // CHECK .ENV.LOCAL & RESTART SERVER
+              </p>
+            )}
+          </div>
+
           {/* ── SINGLE-COLUMN CARD LIST ─────────────────────────────────── */}
           <div className="mt-4 flex flex-col gap-4">
             {loading ? (

@@ -31,6 +31,11 @@ export default function AuthModal({ onClose }: AuthModalProps) {
       provider: "google",
       options: {
         redirectTo: window.location.origin,
+        // Using explicit query params to force a clean re-auth window if needed
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
 

@@ -69,7 +69,8 @@ export default function ProfileButton() {
       .join("");
   };
 
-  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
+  // Check both avatar_url (standard) and picture (Google specific)
+  const avatarUrl = (user?.user_metadata?.avatar_url || user?.user_metadata?.picture) as string | undefined;
 
   return (
     <>
@@ -78,23 +79,35 @@ export default function ProfileButton() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowDropdown((v) => !v)}
-            className="flex items-center gap-2 border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] px-2.5 py-1.5 hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer"
+            className="flex items-center gap-2 border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] px-2.5 py-1.5 hover:-translate-x-px hover:-translate-y-px hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer rounded-full"
             aria-label="Account menu"
           >
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatarUrl}
-                alt="Avatar"
-                className="h-6 w-6 border-2 border-black object-cover"
-              />
-            ) : (
-              <div className="h-6 w-6 bg-brutal-yellow border-2 border-black flex items-center justify-center">
+            <div className="relative h-7 w-7 rounded-full border-2 border-black overflow-hidden flex items-center justify-center bg-brutal-yellow">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="h-full w-full object-cover"
+                  referrerPolicy="no-referrer" // Helps Google images load correctly
+                  onError={(e) => {
+                    // Fallback to initials if image fails
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    const parent = (e.target as HTMLElement).parentElement;
+                    if (parent) {
+                      const initials = document.createElement('span');
+                      initials.className = "font-heading text-[8px] font-black text-black";
+                      initials.innerText = getInitials(user);
+                      parent.appendChild(initials);
+                    }
+                  }}
+                />
+              ) : (
                 <span className="font-heading text-[8px] font-black text-black">
                   {getInitials(user)}
                 </span>
-              </div>
-            )}
+              )}
+            </div>
             <ChevronDown
               className={`h-3 w-3 text-black transition-transform duration-200 ${showDropdown ? "rotate-180" : ""}`}
               strokeWidth={3}
