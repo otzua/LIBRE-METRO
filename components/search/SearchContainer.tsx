@@ -2,11 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowUpDown, Clock, MapPin, ArrowRight, TriangleAlert, Train } from "lucide-react";
-<<<<<<< HEAD
 import RouteMap from "@/components/map/RouteMap";
-=======
 import FareBreakdown from "./FareBreakdown";
->>>>>>> bf808330c264e2a404ce2b433b6be57661fac5ea
 
 interface MetroRouteResponse {
   status: number;
