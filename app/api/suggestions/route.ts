@@ -38,8 +38,7 @@ export async function POST(request: NextRequest) {
                 destination,
                 full_route,
                 hashtags: hashtags || [],
-                upvotes: 0,
-                downvotes: 0
+                votes: 0
             }])
             .select();
 

@@ -1,59 +1,142 @@
-# Libre Metro - Delhi Metro API Usage Guide
+# 🚇 LIBRE METRO
 
-This project provides an easy way to interact with the Delhi Metro Shortest Path API and manage transit data in Supabase.
+**Libre Metro** is a modern, neo-brutalist transit application designed for the Delhi Metro network. It provides a system-like interface for route discovery, station information, and community-driven path suggestions.
 
-## Shortest Metro Route API
-To calculate the path between two stations, you can use the api/dmrc endpoint. You must specify the type as route and provide both a source and a destination station.
+---
 
-Example API URL for your test:
-http://localhost:3001/api/dmrc?type=route&from=Tughlakabad&to=Vishwavidyalaya
+## 🚀 Getting Started
 
-This will return the travel time, the full path of stations, and any interchanges required for the journey.
+### 1. Prerequisites
+- Node.js (v18+)
+- Supabase Account (for database & authentication)
 
-## Metro Station List API
-To see all station names for a specific metro line, use the same api/dmrc endpoint but set the type to stations and provide a line name.
+### 2. Environment Setup
+Create a `.env.local` file in the root directory:
 
-Example for Blue Line:
-http://localhost:3001/api/dmrc?type=stations&line=blue
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_METRO_API_URL=https://your-dmrc-api-host.com
+```
 
-## Interactive Route Visualization (Leaflet Map)
-Once a route is calculated, an interactive map will appear at the bottom of the results. It plots the exact geographic path of the metro stations and colors the route line based on the primary metro line used.
+### 3. Installation
+```bash
+npm install
+npm run dev
+```
 
-## Bulk Station Import (Supabase)
-To quickly populate your Supabase database from your stops.txt file, you can use the import-stops API. This will read the file and insert all station details into the database.
+---
 
-Example to trigger import:
-http://localhost:3001/api/import-stops
+## 🛠️ API Documentation
 
-## Adding Single Stations (Supabase)
-You can manually add individual stations by sending a POST request to the api/stations endpoint.
+The project utilizes both **Internal Next.js API Routes** (connected to Supabase) and an **External Metro Service** for pathfinding.
 
-You must provide: stop_id, stop_name, stop_lat, and stop_lon.
+### 1. Community Suggestions API
+Handles user-submitted route alternatives and "street knowledge."
 
-Example usage for adding Okhla Vihar:
-POST http://localhost:3001/api/stations with data:
-stop_id: 999
-stop_name: Okhla Vihar
-stop_lat: 28.5612
-stop_lon: 77.2919
+#### **GET** `/api/suggestions`
+Retrieve all community route suggestions.
+- **Endpoint:** `http://localhost:3000/api/suggestions`
+- **Response Structure:**
+  ```json
+  {
+    "status": 200,
+    "data": [
+      {
+        "id": "uuid",
+        "origin": "Tughlaqabad",
+        "destination": "Vishwavidyalaya",
+        "full_route": ["Tughlaqabad", "Kashmere Gate", "Vishwavidyalaya"],
+        "votes": 12,
+        "hashtags": ["Less crowded"],
+        "created_at": "timestamp"
+      }
+    ]
+  }
+  ```
 
-## Adding Route Suggestions (Supabase)
-You can add community-suggested routes by sending a POST request to the api/suggestions endpoint.
+#### **POST** `/api/suggestions`
+Submit a new community route suggestion.
+- **Endpoint:** `http://localhost:3000/api/suggestions`
+- **Payload:**
+  ```json
+  {
+    "origin": "Station A",
+    "destination": "Station B",
+    "full_route": ["Station A", "Station C", "Station B"],
+    "hashtags": ["Fastest", "Seat available"]
+  }
+  ```
 
-You must provide: origin, destination, and full_route (json).
+---
 
-Example usage for your test:
-POST http://localhost:3001/api/suggestions with data:
-origin: Tughlakabad
-destination: Vishwavidyalaya
-full_route: ["Tughlakabad", "Kalkaji Mandir", "Vishwavidyalaya"]
-hashtags: ["fast", "direct"]
+### 2. Station Metadata API
+Utility for mapping station names to geographical coordinates.
 
-## Important Information about Station Names
-When searching for routes, make sure to use the exact station names. The API is case-insensitive, but extra spaces should be avoided. For the best experience, reference the official station list.
+#### **GET** `/api/stations`
+Get coordinates for specific stations.
+- **Endpoint:** `http://localhost:3000/api/stations?names=Rajiv Chowk,Hauz Khas`
+- **Response Structure:**
+  ```json
+  {
+    "status": 200,
+    "data": [
+      {
+        "stop_name": "Rajiv Chowk",
+        "stop_lat": 28.6328,
+        "stop_lon": 77.2195
+      }
+    ]
+  }
+  ```
 
-## Core Features and Logic
-The system automatically accounts for the 9-minute penalty during interchanges between different lines to accurately reflect real-world travel time.
+#### **POST** `/api/import-stops`
+Admin utility to bulk import `stops.txt` data into Supabase `stations` table.
+- **Endpoint:** `http://localhost:3000/api/import-stops`
 
-## Setting up your Backend URL
-Ensure your .env.local file is configured with the correct ngrok or localhost address for your Metro API backend using the API and NEXT_PUBLIC_METRO_API_URL variables.
+---
+
+### 3. Core Metro Service (External)
+Interface for the shortest-path algorithm service.
+
+#### **GET** `/route-get`
+Calculate the standard shortest path between two stations.
+- **Endpoint:** `http://localhost:3000/route-get?from=Hauz Khas&to=Rajiv Chowk`
+- **Fields:**
+  - `from`: Source station name
+  - `to`: Destination station name
+- **Response Structure:**
+  ```json
+  {
+    "status": 200,
+    "path": ["Hauz Khas", "Green Park", "...", "Rajiv Chowk"],
+    "time": 24,
+    "interchange": ["Central Secretariat"]
+  }
+  ```
+
+#### **GET** `/stations-get`
+List all stations on a specific line.
+- **Endpoint:** `http://localhost:3000/stations-get?value=yellow`
+- **Fields:**
+  - `value`: Line name (e.g., `blue`, `yellow`, `magenta`, `violet`)
+
+---
+
+## 🎨 Design System
+
+Libre Metro follows high-contrast **Neo-Brutalism**:
+- **Palette:** Off-White (`#FFFDF5`), Stark Black (`#000000`), and Vibrant Accent Colors (Yellow, Pink, Blue).
+- **Typography:** `Press_Start_2P` for headings, `Space_Grotesk` for body text.
+- **Components:** Sharp borders (3px+), hard black shadows (4px/8px), and boxy layouts.
+
+## 🔐 Authentication
+Integrated with **Supabase Auth (Google OAuth)**.
+- Authentication modal available in the top-right header.
+- Required for: Submitting community routes.
+- Not required for: Searching standard routes or viewing the map.
+
+---
+
+## 📜 License
+Internal Project - Libre Metro Team.
