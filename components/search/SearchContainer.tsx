@@ -24,7 +24,7 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface MetroRouteResponse {
+export interface MetroRouteResponse {
   status: number;
   line1?: string[];
   line2?: string[];
@@ -37,21 +37,21 @@ interface MetroRouteResponse {
 
 // ─── Metro line colors ────────────────────────────────────────────────────────
 
-const LINE_COLORS: Record<
+export const LINE_COLORS: Record<
   string,
   { bg: string; text: string; border: string; accent: string }
 > = {
-  blue:    { bg: "bg-[#0052A5]", text: "text-white", border: "border-[#0052A5]", accent: "#0052A5" },
-  yellow:  { bg: "bg-[#FFCB05]", text: "text-black", border: "border-[#FFCB05]", accent: "#FFCB05" },
+  blue:    { bg: "bg-[#5294FF]", text: "text-white", border: "border-[#5294FF]", accent: "#5294FF" },
+  yellow:  { bg: "bg-[#FACC00]", text: "text-black", border: "border-[#FACC00]", accent: "#FACC00" },
   magenta: { bg: "bg-[#CC0066]", text: "text-white", border: "border-[#CC0066]", accent: "#CC0066" },
-  violet:  { bg: "bg-[#7B1FA2]", text: "text-white", border: "border-[#7B1FA2]", accent: "#7B1FA2" },
-  red:     { bg: "bg-[#E53935]", text: "text-white", border: "border-[#E53935]", accent: "#E53935" },
-  green:   { bg: "bg-[#388E3C]", text: "text-white", border: "border-[#388E3C]", accent: "#388E3C" },
-  pink:    { bg: "bg-[#E91E63]", text: "text-white", border: "border-[#E91E63]", accent: "#E91E63" },
-  orange:  { bg: "bg-[#EF6C00]", text: "text-white", border: "border-[#EF6C00]", accent: "#EF6C00" },
+  violet:  { bg: "bg-[#7A83FF]", text: "text-white", border: "border-[#7A83FF]", accent: "#7A83FF" },
+  red:     { bg: "bg-[#FF4D50]", text: "text-white", border: "border-[#FF4D50]", accent: "#FF4D50" },
+  green:   { bg: "bg-[#05E17A]", text: "text-white", border: "border-[#05E17A]", accent: "#05E17A" },
+  pink:    { bg: "bg-[#FF4D50]", text: "text-white", border: "border-[#FF4D50]", accent: "#FF4D50" },
+  orange:  { bg: "bg-[#FF7A05]", text: "text-white", border: "border-[#FF7A05]", accent: "#FF7A05" },
   aqua:    { bg: "bg-[#00ACC1]", text: "text-white", border: "border-[#00ACC1]", accent: "#00ACC1" },
   grey:    { bg: "bg-[#757575]", text: "text-white", border: "border-[#757575]", accent: "#757575" },
-  rapid:   { bg: "bg-[#EF6C00]", text: "text-white", border: "border-[#EF6C00]", accent: "#EF6C00" },
+  rapid:   { bg: "bg-[#FF7A05]", text: "text-white", border: "border-[#FF7A05]", accent: "#FF7A05" },
 };
 
 function getLineColor(lines: string[] | undefined) {
