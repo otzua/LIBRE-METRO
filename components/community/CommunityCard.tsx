@@ -11,7 +11,6 @@ export interface CommunityRoute {
   votes: number;
   userVote: "up" | "down" | null;
   author?: string;
-  authorAvatar?: string;
   initials?: string;
   accentColor?: string;
 }
@@ -20,7 +19,6 @@ interface CommunityCardProps {
   data: CommunityRoute;
   onVote: (id: string, direction: "up" | "down") => void;
   onClick: () => void;
-  isSignedIn?: boolean;
 }
 
 const TAG_STYLES: Record<string, string> = {
@@ -41,7 +39,7 @@ const ACCENT_COLORS = [
 
 export const ACCENT_COLORS_LIST = ACCENT_COLORS;
 
-export default function CommunityCard({ data, onVote, onClick, isSignedIn = false }: CommunityCardProps) {
+export default function CommunityCard({ data, onVote, onClick }: CommunityCardProps) {
   const tagStyle = TAG_STYLES[data.tag] ?? "bg-brutal-lavender";
   // derive accent from first char of id for deterministic color
   const accentIdx = data.id.charCodeAt(0) % ACCENT_COLORS.length;
@@ -56,16 +54,12 @@ export default function CommunityCard({ data, onVote, onClick, isSignedIn = fals
       {/* ── TOP ROW: avatar + author + tag ─────────────────────────────── */}
       <div className="flex items-center gap-3 px-4 py-3 border-b-[3px] border-black">
         {/* Avatar */}
-        {data.authorAvatar ? (
-          <img src={data.authorAvatar} alt={data.author ?? "User"} className="h-9 w-9 shrink-0 border-2 border-black object-cover" />
-        ) : (
-          <div className={`h-9 w-9 shrink-0 ${accent} border-2 border-black flex items-center justify-center`}>
-            <span className="font-heading text-[9px] font-black text-black tracking-wider">{initials}</span>
-          </div>
-        )}
+        <div className={`h-9 w-9 shrink-0 ${accent} border-2 border-black flex items-center justify-center`}>
+          <span className="font-heading text-[9px] font-black text-black tracking-wider">{initials}</span>
+        </div>
 
         <div className="flex-1 min-w-0">
-          <p className="font-heading text-[9px] font-black text-black uppercase tracking-widest truncate">
+          <p className="font-heading text-[10px] sm:text-[9px] font-black text-black uppercase tracking-widest truncate">
             {data.author ?? "COMMUNITY_USER"}
           </p>
           <p className="font-heading text-[7px] text-black/40 uppercase tracking-widest font-bold">
@@ -81,12 +75,12 @@ export default function CommunityCard({ data, onVote, onClick, isSignedIn = fals
 
       {/* ── MIDDLE: title + tip (side by side on wide, stacked on narrow) ── */}
       <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-start sm:gap-6 border-b-[3px] border-black">
-        <div className="flex-1 min-w-0">
-          <p className="font-heading text-[11px] font-black text-black uppercase tracking-wider leading-relaxed">
+        <div className="flex-1 min-w-0 mb-1 sm:mb-0">
+          <p className="font-heading text-[12px] sm:text-[11px] font-black text-black uppercase tracking-wider leading-relaxed">
             {data.title}
           </p>
         </div>
-        <p className="text-black/55 text-[9px] font-heading uppercase tracking-wider leading-relaxed font-bold sm:max-w-[50%] mt-1 sm:mt-0">
+        <p className="text-black/55 text-[10px] sm:text-[9px] font-heading uppercase tracking-wider leading-relaxed font-bold sm:max-w-[50%]">
           {data.tip}
         </p>
       </div>
@@ -97,55 +91,47 @@ export default function CommunityCard({ data, onVote, onClick, isSignedIn = fals
         onClick={(e) => e.stopPropagation()}
       >
         {/* Route segments */}
-        <div className="flex items-center gap-1 flex-wrap flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
           {data.route.split("→").map((seg, i, arr) => (
             <span key={i} className="flex items-center gap-1">
-              <span className="font-heading text-[8px] bg-black text-white px-2 py-0.5 font-black tracking-widest uppercase whitespace-nowrap">
+              <span className="font-heading text-[8px] bg-black text-white px-2 py-0.5 font-black tracking-widest uppercase whitespace-nowrap shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]">
                 {seg.trim()}
               </span>
               {i < arr.length - 1 && (
-                <ArrowRight className="h-2.5 w-2.5 text-black opacity-40 shrink-0" />
+                <ArrowRight className="h-2.5 w-2.5 text-black opacity-30 shrink-0" />
               )}
             </span>
           ))}
         </div>
 
         {/* Vote controls */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
           <button
-            onClick={(e) => { 
-                e.stopPropagation(); 
-                onVote(data.id, "up"); 
-            }}
-            disabled={!isSignedIn}
-            className={`h-8 w-8 flex items-center justify-center border-2 border-black transition-all ${!isSignedIn ? "opacity-30 cursor-not-allowed bg-black/10 shadow-none border-dashed" : "cursor-pointer active:scale-90"} ${
-              isSignedIn && data.userVote === "up"
+            onClick={() => onVote(data.id, "up")}
+            className={`h-10 w-10 sm:h-8 sm:w-8 flex items-center justify-center border-2 border-black transition-all active:scale-90 cursor-pointer ${
+              data.userVote === "up"
                 ? "bg-brutal-green shadow-none translate-x-[1px] translate-y-[1px]"
-                : isSignedIn ? "bg-white shadow-neo hover:bg-brutal-green/30" : ""
+                : "bg-white shadow-neo hover:bg-brutal-green/30"
             }`}
             aria-label="Upvote"
           >
-            <ChevronUp className="h-4 w-4 text-black" strokeWidth={3} />
+            <ChevronUp className="h-5 w-5 sm:h-4 sm:w-4 text-black" strokeWidth={3} />
           </button>
 
-          <span className={`font-numbers text-sm font-black min-w-[30px] text-center tabular-nums ${!isSignedIn ? "text-black/30" : "text-black"}`}>
+          <span className="font-numbers text-sm sm:text-xs font-black min-w-[32px] text-center tabular-nums text-black">
             {data.votes > 0 ? `+${data.votes}` : data.votes}
           </span>
 
           <button
-            onClick={(e) => { 
-                e.stopPropagation(); 
-                onVote(data.id, "down"); 
-            }}
-            disabled={!isSignedIn}
-            className={`h-8 w-8 flex items-center justify-center border-2 border-black transition-all ${!isSignedIn ? "opacity-30 cursor-not-allowed bg-black/10 shadow-none border-dashed" : "cursor-pointer active:scale-90"} ${
-              isSignedIn && data.userVote === "down"
+            onClick={() => onVote(data.id, "down")}
+            className={`h-10 w-10 sm:h-8 sm:w-8 flex items-center justify-center border-2 border-black transition-all active:scale-90 cursor-pointer ${
+              data.userVote === "down"
                 ? "bg-brutal-pink shadow-none translate-x-[1px] translate-y-[1px]"
-                : isSignedIn ? "bg-white shadow-neo hover:bg-brutal-pink/30" : ""
+                : "bg-white shadow-neo hover:bg-brutal-pink/30"
             }`}
-            aria-label="Downvote"
+             aria-label="Downvote"
           >
-            <ChevronDown className="h-4 w-4 text-black" strokeWidth={3} />
+            <ChevronDown className="h-5 w-5 sm:h-4 sm:w-4 text-black" strokeWidth={3} />
           </button>
         </div>
       </div>

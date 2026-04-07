@@ -74,6 +74,22 @@
   }
 }
 
+/* ── MAP LAYOUT SAFETY ─────────────────────────────────────────────── */
+/* Force Leaflet to respect our UI layers (z-50 for Dock/Modals) */
+.leaflet-container, 
+.leaflet-pane, 
+.leaflet-control-container,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1 !important;
+}
+
+.leaflet-control-container .leaflet-top,
+.leaflet-control-container .leaflet-bottom {
+  z-index: 2 !important;
+}
+
+
 
 
 

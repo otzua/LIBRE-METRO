@@ -505,7 +505,7 @@ export default function SearchContainer({
               </span>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="relative">
                 {routeResult.path?.map((stationName, idx) => {
                   const isFirst = idx === 0;
@@ -575,11 +575,11 @@ export default function SearchContainer({
 
                       {/* Right: Station details */}
                       <div
-                        className={`flex-1 flex items-center min-h-[44px] pl-4 pr-2 transition-all
+                        className={`flex-1 flex items-center min-h-[36px] sm:min-h-[44px] pl-4 pr-2 transition-all
                           ${
                             isFirst || isLast || isInterchange
-                              ? "py-2"
-                              : "py-1"
+                              ? "py-1.5 sm:py-2"
+                              : "py-0.5 sm:py-1"
                           }
                         `}
                       >
@@ -588,10 +588,10 @@ export default function SearchContainer({
                             className={`font-heading uppercase tracking-wider block
                               ${
                                 isFirst || isLast
-                                  ? "text-[11px] font-black text-black"
+                                  ? "text-[10px] sm:text-[11px] font-black text-black"
                                   : isInterchange
-                                  ? "text-[11px] font-bold text-black"
-                                  : "text-[10px] text-gray-600 group-hover:text-black transition-colors"
+                                  ? "text-[10px] sm:text-[11px] font-bold text-black"
+                                  : "text-[9px] sm:text-[10px] text-gray-600 group-hover:text-black transition-colors"
                               }
                             `}
                           >

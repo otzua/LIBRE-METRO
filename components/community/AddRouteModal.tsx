@@ -29,6 +29,8 @@ interface LocalRoute {
   votes: number;
   tag: string;
   tip: string;
+  author?: string;
+  authorAvatar?: string;
 }
 
 interface AddRouteModalProps {
@@ -305,12 +307,10 @@ export default function AddRouteModal({ onClose, onSubmit, user }: AddRouteModal
     if (!user) { setError("You must be signed in to post."); return; }
     if (segments.length === 0) { setError("Add at least one hop first."); return; }
     setSubmitting(true);
-
-    // Always fetch fresh user data to ensure we have Google's full_name and avatar_url
-    const { data: { user: freshUser } } = await supabase.auth.getUser();
-    const meta = freshUser?.user_metadata ?? {};
-    const authorName = meta.full_name || meta.name || freshUser?.email?.split('@')[0] || "COMMUNITY_USER";
-    const authorAvatar = meta.avatar_url || meta.picture || null;
+    
+    const meta = user.user_metadata || {};
+    const authorName = meta.full_name || meta.name || user.email?.split('@')[0] || "COMMUNITY_USER";
+    const authorAvatar = meta.avatar_url || meta.picture || undefined;
 
     const { data, error } = await supabase.from("suggestions").insert([{
       origin: fullRoute[0],
@@ -319,37 +319,53 @@ export default function AddRouteModal({ onClose, onSubmit, user }: AddRouteModal
       tip: tip.trim(),
       votes: 0,
       hashtags: [],
-      user_id: freshUser?.id ?? user.id,
       author_name: authorName,
       author_avatar: authorAvatar,
+      user_id: user.id
     }]).select().single();
-    if (error) { setError("Save failed. Try again."); setSubmitting(false); return; }
+    
+    if (error) { 
+      console.error("Submission error:", error);
+      setError("Save failed. Try again."); 
+      setSubmitting(false); 
+      return; 
+    }
+    
     setSubmitted(true);
     setTimeout(() => {
-      onSubmit({ id: data.id, title: `${fullRoute[0]} → ${fullRoute[fullRoute.length - 1]}`, route: fullRoute, votes: 0, tag: "Community", tip: tip.trim() });
+      onSubmit({ 
+        id: data.id, 
+        title: `${fullRoute[0]} → ${fullRoute[fullRoute.length - 1]}`, 
+        route: fullRoute, 
+        votes: 0, 
+        tag: "Community", 
+        tip: tip.trim(),
+        author: authorName,
+        authorAvatar: authorAvatar
+      });
       onClose();
     }, 1200);
   };
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 ${visible ? "opacity-100" : "opacity-0"}`} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} className={`w-full max-w-xl bg-white border-[4px] border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col max-h-[92vh] transition-all duration-300 ${visible ? "scale-100 translate-y-0" : "scale-95 translate-y-8"}`}>
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 ${visible ? "opacity-100" : "opacity-0"}`} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className={`w-full max-w-xl bg-white border-[3px] sm:border-[4px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col max-h-[95vh] sm:max-h-[92vh] transition-all duration-300 ${visible ? "scale-100 translate-y-0" : "scale-95 translate-y-8"}`}>
 
         {/* ── HEADER ── */}
-        <div className="bg-black p-5 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-brutal-yellow border-2 border-white/20"><Train className="h-5 w-5 text-black" /></div>
+        <div className="bg-black p-4 sm:p-5 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-1.5 sm:p-2 bg-brutal-yellow border-2 border-white/20"><Train className="h-4 w-4 sm:h-5 w-5 text-black" /></div>
             <div>
-              <h2 className="font-heading text-base text-white font-black tracking-tighter uppercase">ADD COMMUNITY ROUTE</h2>
-              <p className="font-heading text-[9px] text-white/40 uppercase tracking-widest">BUILD // VERIFY // SHARE</p>
+              <h2 className="font-heading text-sm sm:text-base text-white font-black tracking-tighter uppercase leading-tight">ADD COMMUNITY ROUTE</h2>
+              <p className="font-heading text-[8px] sm:text-[9px] text-white/40 uppercase tracking-widest">BUILD // VERIFY // SHARE</p>
             </div>
           </div>
-          <button onClick={onClose} className="h-10 w-10 bg-brutal-pink border-2 border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none"><X className="h-6 w-6 text-black" /></button>
+          <button onClick={onClose} className="h-9 w-9 sm:h-10 w-10 bg-brutal-pink border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] sm:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-px active:translate-y-px active:shadow-none transition-all"><X className="h-5 w-5 sm:h-6 w-6 text-black" /></button>
         </div>
 
         {/* ── BODY ── */}
-        <div className="overflow-y-auto p-6 space-y-8 flex-1">
+        <div className="overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8 flex-1">
           {submitted ? (
             <div className="py-20 text-center space-y-4">
               <div className="h-20 w-20 bg-brutal-green border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] mx-auto flex items-center justify-center"><Check className="h-12 w-12" /></div>

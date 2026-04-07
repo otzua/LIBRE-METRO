@@ -34,8 +34,6 @@ function mapDbRow(row: any, index: number, userId: string | undefined): Communit
     tip:         row.tip ?? "",
     votes:       row.votes ?? 0,
     userVote:    userVote,
-    author:      row.author_name ?? "COMMUNITY_USER",
-    authorAvatar: row.author_avatar,
     accentColor: ACCENT_COLORS_LIST[index % ACCENT_COLORS_LIST.length],
   };
 }
@@ -88,26 +86,16 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
   const [isVisible, setIsVisible]                 = useState(false);
   const [user, setUser]                           = useState<User | null>(null);
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
-  // IMPORTANT: We use getUser() (not just session?.user) because Google OAuth
-  // user_metadata (full_name, avatar_url) is only reliably available on the
-  // server-verified user object, not the JWT-decoded session token.
+  // ── Auth ───────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const loadUser = async () => {
-      const { data: { user: freshUser } } = await supabase.auth.getUser();
-      setUser(freshUser ?? null);
-    };
-    loadUser();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_e, session) => {
-      if (session) {
-        // Re-fetch full user from server on every auth change
-        const { data: { user: freshUser } } = await supabase.auth.getUser();
-        setUser(freshUser ?? null);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
         setShowLoginRequired(false);
         setShowAuthModal(false);
-      } else {
-        setUser(null);
       }
     });
     return () => listener.subscription.unsubscribe();
@@ -162,7 +150,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
   };
 
   const handleRouteSubmitted = (newRoute: { id: string; title: string; route: string[]; votes: number; tag: string; tip: string }) => {
-    // user is already the server-verified object from getUser(), so metadata is reliable
     const meta = user?.user_metadata ?? {};
     const mapped: CommunityRoute = {
       id: newRoute.id,
@@ -173,7 +160,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
       votes: 0,
       userVote: null,
       author: meta.full_name || meta.name || user?.email?.split('@')[0] || "COMMUNITY_USER",
-      authorAvatar: meta.avatar_url || meta.picture || undefined,
       accentColor: ACCENT_COLORS_LIST[0],
     };
     setRoutes(prev => [mapped, ...prev]);
@@ -235,7 +221,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
   return (
     <>
       <div
-        className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 overflow-y-auto py-10 px-4 pb-32 ${
+        className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 overflow-y-auto py-4 sm:py-10 px-4 pb-32 ${
           isVisible ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
@@ -324,7 +310,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
                     data={route}
                     onVote={handleVote}
                     onClick={() => setSelectedRoute(route)}
-                    isSignedIn={!!user}
                   />
                 </div>
               ))
@@ -333,21 +318,21 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
 
           {/* CTA FOOTER */}
           {!loading && (
-            <div className="mt-4 border-[3px] border-black border-dashed bg-white/60 p-5 flex items-center justify-between gap-4">
-              <div>
-                <p className="font-heading text-[9px] text-black uppercase tracking-widest font-black">
+            <div className="mt-6 border-[3px] border-black border-dashed bg-white/60 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <p className="font-heading text-[10px] sm:text-[9px] text-black uppercase tracking-widest font-black">
                   KNOW A BETTER ROUTE?
                 </p>
-                <p className="font-heading text-[7px] text-black/40 uppercase tracking-wider font-bold mt-0.5">
+                <p className="font-heading text-[8px] sm:text-[7px] text-black/40 uppercase tracking-wider font-bold mt-0.5">
                   TAP TO SHARE YOUR LOCAL KNOWLEDGE
                 </p>
               </div>
               <button
                 onClick={handleAddClick}
-                className="shrink-0 bg-brutal-yellow border-[3px] border-black shadow-neo px-4 py-2 font-heading text-[9px] font-black uppercase tracking-widest hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center gap-2"
+                className="w-full sm:w-auto shrink-0 bg-brutal-yellow border-[3px] border-black shadow-neo px-6 py-3 sm:px-4 sm:py-2 font-heading text-[10px] sm:text-[9px] font-black uppercase tracking-widest hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <Plus className="h-4 w-4" strokeWidth={3} />
-                ADD
+                ADD ROUTE
               </button>
             </div>
           )}
