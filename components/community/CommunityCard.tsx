@@ -11,6 +11,7 @@ export interface CommunityRoute {
   votes: number;
   userVote: "up" | "down" | null;
   author?: string;
+  authorAvatar?: string;
   initials?: string;
   accentColor?: string;
 }
@@ -19,6 +20,7 @@ interface CommunityCardProps {
   data: CommunityRoute;
   onVote: (id: string, direction: "up" | "down") => void;
   onClick: () => void;
+  isSignedIn?: boolean;
 }
 
 const TAG_STYLES: Record<string, string> = {
@@ -39,7 +41,7 @@ const ACCENT_COLORS = [
 
 export const ACCENT_COLORS_LIST = ACCENT_COLORS;
 
-export default function CommunityCard({ data, onVote, onClick }: CommunityCardProps) {
+export default function CommunityCard({ data, onVote, onClick, isSignedIn }: CommunityCardProps) {
   const tagStyle = TAG_STYLES[data.tag] ?? "bg-brutal-lavender";
   // derive accent from first char of id for deterministic color
   const accentIdx = data.id.charCodeAt(0) % ACCENT_COLORS.length;
@@ -54,8 +56,12 @@ export default function CommunityCard({ data, onVote, onClick }: CommunityCardPr
       {/* ── TOP ROW: avatar + author + tag ─────────────────────────────── */}
       <div className="flex items-center gap-3 px-4 py-3 border-b-[3px] border-black">
         {/* Avatar */}
-        <div className={`h-9 w-9 shrink-0 ${accent} border-2 border-black flex items-center justify-center`}>
-          <span className="font-heading text-[9px] font-black text-black tracking-wider">{initials}</span>
+        <div className={`h-9 w-9 shrink-0 ${accent} border-2 border-black flex items-center justify-center overflow-hidden`}>
+          {data.authorAvatar ? (
+            <img src={data.authorAvatar} alt={data.author} className="h-full w-full object-cover" />
+          ) : (
+            <span className="font-heading text-[9px] font-black text-black tracking-wider">{initials}</span>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">

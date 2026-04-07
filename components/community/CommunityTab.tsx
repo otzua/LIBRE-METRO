@@ -34,6 +34,8 @@ function mapDbRow(row: any, index: number, userId: string | undefined): Communit
     tip:         row.tip ?? "",
     votes:       row.votes ?? 0,
     userVote:    userVote,
+    author:      row.author_name ?? "COMMUNITY_USER",
+    authorAvatar: row.author_avatar,
     accentColor: ACCENT_COLORS_LIST[index % ACCENT_COLORS_LIST.length],
   };
 }
@@ -88,14 +90,20 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
 
   // ── Auth ───────────────────────────────────────────────────────────────────
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
+    const loadUser = async () => {
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      setUser(freshUser ?? null);
+    };
+    loadUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_e, session) => {
+      if (session) {
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        setUser(freshUser ?? null);
         setShowLoginRequired(false);
         setShowAuthModal(false);
+      } else {
+        setUser(null);
       }
     });
     return () => listener.subscription.unsubscribe();
@@ -107,7 +115,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
       setLoading(true);
       setFetchError(null);
       try {
-        // Fetch from our new database view which automatically includes the current user's vote
         const { data, error } = await supabase
           .from("suggestions_with_user_vote")
           .select("*")
@@ -115,8 +122,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
           .order("created_at", { ascending: false });
 
         if (error) throw error;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setRoutes((data ?? []).map((row: any, i: number) => mapDbRow(row, i, user?.id)));
       } catch (error) {
         console.error("fetchSuggestions error:", error);
@@ -160,6 +165,7 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
       votes: 0,
       userVote: null,
       author: meta.full_name || meta.name || user?.email?.split('@')[0] || "COMMUNITY_USER",
+      authorAvatar: meta.avatar_url || meta.picture || undefined,
       accentColor: ACCENT_COLORS_LIST[0],
     };
     setRoutes(prev => [mapped, ...prev]);
@@ -177,7 +183,6 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
     let newVotes = route.votes;
     let newUserVote: "up" | "down" | null = direction;
 
-    // 1. Calculate optimistic local state
     if (route.userVote === direction) {
       newVotes = direction === "up" ? route.votes - 1 : route.votes + 1;
       newUserVote = null;
@@ -193,17 +198,14 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
       )
     );
 
-    // 2. Persist to DB - The suggestions table 'votes' count is handled by a DB trigger on suggestion_votes
     try {
       if (newUserVote === null) {
-        // Remove vote
         await supabase
           .from("suggestion_votes")
           .delete()
           .eq("suggestion_id", id)
           .eq("user_id", user.id);
       } else {
-        // Upsert vote (insert or update)
         await supabase
           .from("suggestion_votes")
           .upsert({
@@ -232,28 +234,38 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
             isVisible ? "scale-100" : "scale-95"
           }`}
         >
-          {/* HEADER */}
-          <div className="bg-black border-[3px] border-black mb-0 flex items-center justify-between px-5 py-4">
+          {/* HEADER (FIXED IN PLACE RELATIVE TO CONTENT) */}
+          <div className="bg-black border-[3px] border-black mb-0 flex items-center justify-between px-5 py-4 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-brutal-yellow border-2 border-white">
-                <Users className="h-4 w-4 text-black" strokeWidth={3} />
+              <div className="p-2 bg-white/10 border-2 border-white/20">
+                <Users className="h-4 w-4 text-white" strokeWidth={3} />
               </div>
               <div>
                 <p className="font-heading text-[10px] text-white tracking-[0.25em] uppercase font-black">
                   COMMUNITY_HUB
                 </p>
                 <p className="font-heading text-[7px] text-white/40 uppercase tracking-widest font-bold">
-                  STREET_KNOWLEDGE // DEL_METRO
+                  STREET_KNOWLEDGE // DELHI_METRO
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="h-9 w-9 flex items-center justify-center bg-brutal-pink border-2 border-white hover:brightness-95 active:scale-95 transition-all cursor-pointer"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5 text-black" strokeWidth={3} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAddClick}
+                className="h-9 px-4 flex items-center justify-center gap-2 bg-brutal-yellow border-2 border-white hover:brightness-95 active:scale-95 transition-all cursor-pointer font-heading text-[9px] font-black uppercase text-black tracking-widest shadow-neo shadow-white/20 active:shadow-none translate-y-[-1px]"
+                aria-label="Add Route"
+              >
+                <Plus className="h-4 w-4" strokeWidth={3} />
+                ADD ROUTE
+              </button>
+              <button
+                onClick={onClose}
+                className="h-9 w-9 flex items-center justify-center bg-brutal-pink border-2 border-white hover:brightness-95 active:scale-95 transition-all cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5 text-black" strokeWidth={3} />
+              </button>
+            </div>
           </div>
 
           {/* KICKER */}
@@ -268,20 +280,10 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
             </span>
           </div>
 
-          {/* DEBUG INDICATOR FOR ENV VARS */}
-          <div className="mt-2 text-center">
-            {(!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) && (
-              <p className="font-heading text-[7px] text-brutal-pink uppercase font-black tracking-widest animate-pulse">
-                ENV_VARS_MISSING // CHECK .ENV.LOCAL & RESTART SERVER
-              </p>
-            )}
-          </div>
-
           {/* SINGLE-COLUMN CARD LIST */}
           <div className="mt-4 flex flex-col gap-4">
             {loading ? (
               <>
-                <SkeletonCard />
                 <SkeletonCard />
                 <SkeletonCard />
               </>
@@ -290,17 +292,11 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
                 <p className="font-heading text-[10px] font-black uppercase tracking-widest text-black">
                   {fetchError}
                 </p>
-                <p className="font-heading text-[8px] text-black/60 font-bold uppercase tracking-wider mt-1">
-                  CHECK_CONNECTION // RETRY LATER
-                </p>
               </div>
             ) : routes.length === 0 ? (
               <div className="border-[3px] border-dashed border-black p-10 text-center bg-white/60">
                 <p className="font-heading text-[10px] font-black uppercase tracking-widest text-black">
                   NO_ROUTES_YET
-                </p>
-                <p className="font-heading text-[8px] text-black/40 font-bold uppercase tracking-wider mt-1">
-                  BE THE FIRST TO SUGGEST ONE
                 </p>
               </div>
             ) : (
@@ -310,32 +306,12 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
                     data={route}
                     onVote={handleVote}
                     onClick={() => setSelectedRoute(route)}
+                    isSignedIn={!!user}
                   />
                 </div>
               ))
             )}
           </div>
-
-          {/* CTA FOOTER */}
-          {!loading && (
-            <div className="mt-6 border-[3px] border-black border-dashed bg-white/60 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <p className="font-heading text-[10px] sm:text-[9px] text-black uppercase tracking-widest font-black">
-                  KNOW A BETTER ROUTE?
-                </p>
-                <p className="font-heading text-[8px] sm:text-[7px] text-black/40 uppercase tracking-wider font-bold mt-0.5">
-                  TAP TO SHARE YOUR LOCAL KNOWLEDGE
-                </p>
-              </div>
-              <button
-                onClick={handleAddClick}
-                className="w-full sm:w-auto shrink-0 bg-brutal-yellow border-[3px] border-black shadow-neo px-6 py-3 sm:px-4 sm:py-2 font-heading text-[10px] sm:text-[9px] font-black uppercase tracking-widest hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Plus className="h-4 w-4" strokeWidth={3} />
-                ADD ROUTE
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
