@@ -111,7 +111,8 @@ export default function CommunityTab({ onClose }: CommunityTabProps) {
         const { data, error } = await supabase
           .from("suggestions_with_user_vote")
           .select("*")
-          .order("votes", { ascending: false });
+          .order("votes", { ascending: false })
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
 

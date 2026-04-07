@@ -9,8 +9,12 @@ import {
   TriangleAlert,
   Train,
   Lightbulb,
+  Crosshair,
 } from "lucide-react";
+import LocationSystem from "@/components/location/LocationSystem";
 import FareBreakdown from "./FareBreakdown";
+import { lazy, Suspense } from "react";
+const MapView = lazy(() => import("@/components/map/MapView"));
 import {
   buildStationIndex,
   getAutocompleteSuggestions,
@@ -242,7 +246,7 @@ export default function SearchContainer({
 
         <div className="p-8 space-y-8 relative">
           {/* STRUCTURAL CONNECTOR */}
-          <div className="absolute left-[54px] top-40 h-12 w-1 bg-black z-0 transition-all duration-300" />
+          <div className="absolute left-[86px] top-40 h-12 w-1 bg-black z-0 transition-all duration-300" />
 
           {/* ── 1. FROM STATION ────────────────────────────────────────────── */}
           <div className="relative z-30">
@@ -651,6 +655,25 @@ export default function SearchContainer({
                 </p>
               </div>
             )}
+          </div>
+
+          {/* ── MAP VIEW (Appears directly below the valid route results) ── */}
+          <div className="mt-4">
+            <Suspense fallback={
+              <div className="border-[3px] border-black shadow-neo h-[380px] bg-[#f0ede8] flex flex-col">
+                <div className="h-8 bg-black flex items-center px-3">
+                  <span className="font-heading text-[8px] text-white tracking-widest">SYSTEM_MAP // LOADING...</span>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="h-3 w-3 bg-black animate-ping" />
+                </div>
+              </div>
+            }>
+              <MapView 
+                highlightedPath={routeResult.path} 
+                activeLine={routeResult.line1?.[0]} 
+              />
+            </Suspense>
           </div>
         </div>
       )}

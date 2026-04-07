@@ -60,15 +60,20 @@ export class MetroAPI {
     return name.trim();
   }
 
-  /**
-   * Common fetch wrapper that adds required headers for ngrok tunnels.
-   */
   private async apiFetch(url: string): Promise<Response> {
-    return fetch(url, {
+    const response = await fetch(url, {
       headers: {
         'ngrok-skip-browser-warning': 'true',
+        'Accept': 'application/json',
       },
     });
+    
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("text/html")) {
+      throw new Error(`Received HTML instead of JSON. Ngrok might be rate-limiting or returning an interstitial page. URL: ${url}`);
+    }
+    
+    return response;
   }
 
   /**
@@ -123,19 +128,20 @@ export class MetroAPI {
 
   /**
    * Fetches all unique station names from ALL metro lines.
-   * Used for autocomplete.
+   * Fetched sequentially to avoid ngrok concurrent connection rate limits.
    */
   async getAllStations(): Promise<string[]> {
     try {
       const allStations = new Set<string>();
       
-      const results = await Promise.allSettled(
-        METRO_LINES.map(line => this.getStationsByLine(line))
-      );
-
-      for (const result of results) {
-        if (result.status === 'fulfilled' && result.value.stations) {
-          result.value.stations.forEach(s => allStations.add(s));
+      for (const line of METRO_LINES) {
+        try {
+          const result = await this.getStationsByLine(line);
+          if (result.status === 200 && result.stations) {
+            result.stations.forEach(s => allStations.add(s));
+          }
+        } catch (e) {
+          console.warn(`[MetroAPI] Soft fail fetching stations for line ${line}`);
         }
       }
 

@@ -323,7 +323,7 @@ export default function AddRouteModal({ onClose, onSubmit, user }: AddRouteModal
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md transition-all duration-300 ${visible ? "opacity-100" : "opacity-0"}`} onClick={onClose}>
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 ${visible ? "opacity-100" : "opacity-0"}`} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className={`w-full max-w-xl bg-white border-[4px] border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col max-h-[92vh] transition-all duration-300 ${visible ? "scale-100 translate-y-0" : "scale-95 translate-y-8"}`}>
 
         {/* ── HEADER ── */}
