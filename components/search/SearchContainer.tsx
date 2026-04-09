@@ -457,51 +457,44 @@ export default function SearchContainer({
           <FareBreakdown stopsCount={routeResult.path?.length || 1} />
 
           {/* HEADER CARD */}
-          <div className="bg-white border-2 border-black shadow-neo relative overflow-hidden">
-            <div className="h-8 bg-black flex items-center px-3 justify-between">
-              <span className="font-heading text-[8px] text-white tracking-widest">
+          <div style={{ background: "#fff", border: "3px solid #000", boxShadow: "6px 6px 0 #000", overflow: "hidden" }}>
+            <div style={{ backgroundColor: "var(--accent, #FF2E88)", borderBottom: "3px solid #000", padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontFamily:"var(--heading-font),monospace", fontSize: 8, color: "#000", fontWeight: 900, letterSpacing: "0.15em" }}>
                 RESULT // ROUTE_CALCULATED
               </span>
-              <div className="h-2 w-2 bg-brutal-green animate-pulse" />
+              <div style={{ height: 8, width: 8, background: "#000", borderRadius: "50%", animation: "pulse 2s infinite" }} />
             </div>
 
             <div className="p-6 space-y-4">
               {/* FROM → TO summary */}
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="font-heading text-[10px] bg-brutal-green border-2 border-black px-3 py-1.5 shadow-neo uppercase tracking-wider">
+                <span style={{ background:"#fff", border:"3px solid #000", padding:"6px 12px", fontFamily:"var(--heading-font),monospace", fontSize:10, fontWeight:900, boxShadow:"4px 4px 0 #000" }}>
                   {from}
                 </span>
-                <ArrowRight className="h-4 w-4 text-black shrink-0" />
-                <span className="font-heading text-[10px] bg-brutal-pink border-2 border-black px-3 py-1.5 shadow-neo uppercase tracking-wider">
+                <ArrowRight size={18} strokeWidth={3} />
+                <span style={{ background:"#fff", border:"3px solid #000", padding:"6px 12px", fontFamily:"var(--heading-font),monospace", fontSize:10, fontWeight:900, boxShadow:"4px 4px 0 #000" }}>
                   {to}
                 </span>
               </div>
 
               {/* Stat cards */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-brutal-yellow border-2 border-black shadow-neo p-3 flex flex-col items-center justify-center">
-                  <Clock className="h-4 w-4 mb-1 opacity-70" />
-                  <span className="font-heading text-[7px] opacity-70 mb-0.5">TIME</span>
-                  <span className="font-heading text-lg leading-tight">
-                    {routeResult.time ? Math.round(routeResult.time) : 0}
-                    <span className="text-[8px] ml-0.5">MIN</span>
-                  </span>
-                </div>
-                <div className="bg-brutal-blue border-2 border-black shadow-neo p-3 flex flex-col items-center justify-center">
-                  <MapPin className="h-4 w-4 mb-1 opacity-70" />
-                  <span className="font-heading text-[7px] opacity-70 mb-0.5">STOPS</span>
-                  <span className="font-heading text-lg leading-tight">
-                    {routeResult.path?.length || 0}
-                  </span>
-                </div>
-                <div className="bg-brutal-lavender border-2 border-black shadow-neo p-3 flex flex-col items-center justify-center">
-                  <Train className="h-4 w-4 mb-1 opacity-70" />
-                  <span className="font-heading text-[7px] opacity-70 mb-0.5">LINES</span>
-                  <span className="font-heading text-lg leading-tight">
-                    {((routeResult.line1?.length || 0) +
-                      (routeResult.line2?.length || 0)) || 1}
-                  </span>
-                </div>
+                {[
+                  { label: "TIME", val: `${routeResult.time ? Math.round(routeResult.time) : 0} MIN`, icon: Clock, color: "#FACC00" },
+                  { label: "STOPS", val: routeResult.path?.length || 0, icon: MapPin, color: "#5294FF" },
+                  { label: "LINES", val: ((routeResult.line1?.length || 0) + (routeResult.line2?.length || 0)) || 1, icon: Train, color: "#D4FF00" }
+                ].map((stat, i) => (
+                  <div key={i} style={{
+                    background: "#fff", border: "3px solid #000", boxShadow: "3px 3px 0 #000",
+                    padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
+                  }}>
+                    <div style={{ backgroundColor: stat.color, border: "2px solid #000", padding: 4, marginBottom: 4 }}>
+                      <stat.icon size={12} strokeWidth={3} />
+                    </div>
+                    <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 6, opacity: 0.45 }}>{stat.label}</span>
+                    <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 11, fontWeight: 900, marginTop: 2 }}>{stat.val}</span>
+                  </div>
+                ))}
               </div>
 
               {/* Line badges */}
