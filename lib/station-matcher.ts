@@ -41,6 +41,7 @@ export interface MatchResult {
 export function normalizeStationName(name: string): string {
   return name
     .toLowerCase()
+    .replace(/\bstation\b/g, '')    // Strip "station" as a whole word
     .replace(/[''`]/g, '')          // apostrophes
     .replace(/[-–—]/g, '')          // hyphens / en-dash / em-dash
     .replace(/\./g, '')             // dots  (e.g. "Cantt.")

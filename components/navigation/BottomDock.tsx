@@ -1,3 +1,5 @@
+"use client";
+
 import { Home, Users, Sliders } from "lucide-react";
 import { motion } from "framer-motion";
 import ProfileButton from "@/components/auth/ProfileButton";
@@ -11,84 +13,122 @@ interface BottomDockProps {
 }
 
 export default function BottomDock({ activeTab, onTabChange, onOpenAuth }: BottomDockProps) {
-  const navItems: { id: NavItem; label: string; icon: any }[] = [
-    { id: "home", label: "Home", icon: Home },
-    { id: "community", label: "Community", icon: Users },
-    { id: "personalize", label: "Personalize", icon: Sliders },
+  const navItems: { id: NavItem; label: string; Icon: React.ElementType }[] = [
+    { id: "home",        label: "HOME", Icon: Home },
+    { id: "community",  label: "COMM", Icon: Users },
+    { id: "personalize", label: "PERS", Icon: Sliders },
   ];
 
-  const handleTabClick = (id: NavItem) => {
-    if (typeof window !== "undefined" && window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(5);
-    }
+  const handleClick = (id: NavItem) => {
+    if (typeof window !== "undefined" && window.navigator?.vibrate) window.navigator.vibrate(5);
     onTabChange(id);
   };
 
-  const activeIndex = navItems.findIndex(i => i.id === activeTab);
-  const totalGridItems = navItems.length + 1;
+  const activeIdx = navItems.findIndex(i => i.id === activeTab);
+  const totalCols  = navItems.length + 1; // 3 nav + 1 account
+
+  const BORDER = "3px solid #000";
+  const FONT   = "var(--heading-font), monospace";
 
   return (
-    <div className="fixed bottom-6 w-[95%] max-w-[480px] left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
+    <div style={{
+      position: "fixed",
+      bottom: 20,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "calc(100% - 32px)",
+      maxWidth: 480,
+      zIndex: 500,
+    }}>
+      <motion.div
+        initial={{ y: 24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative flex items-center bg-white border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] rounded-sm overflow-visible pointer-events-auto"
+        transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 26 }}
+        style={{
+          display: "flex",
+          background: "#fff",
+          border: BORDER,
+          boxShadow: "6px 6px 0 #000",
+          position: "relative",
+          overflow: "visible",
+        }}
       >
-        {/* SLIDING INDICATOR - FRAMER MOTION */}
-        <motion.div 
-          className="absolute top-0 bottom-0 bg-brutal-yellow z-0"
+        {/* Sliding accent indicator */}
+        <motion.div
           initial={false}
-          animate={{ x: `${activeIndex * 100}%` }}
-          transition={{ type: "spring", stiffness: 450, damping: 30 }}
-          style={{ width: `${100 / totalGridItems}%` }}
-        >
-          <div className="w-full h-full border-r-[3px] border-l-[3px] border-transparent" />
-        </motion.div>
+          animate={{ x: `${activeIdx * 100}%` }}
+          transition={{ type: "spring", stiffness: 500, damping: 38 }}
+          style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            width: `${100 / totalCols}%`,
+            backgroundColor: "var(--accent, #FF2E88)",
+            borderRight: BORDER,
+            borderLeft: BORDER,
+            zIndex: 0,
+          }}
+        />
 
-        {/* NAV ITEMS */}
-        {navItems.map((item, index) => {
-          const Icon = item.icon;
+        {/* Nav buttons */}
+        {navItems.map((item, i) => {
+          const { Icon } = item;
           const isActive = activeTab === item.id;
-
           return (
             <button
               key={item.id}
-              onClick={() => handleTabClick(item.id)}
-              className={`relative z-10 flex-1 flex flex-col items-center justify-center gap-1 py-3 cursor-pointer select-none transition-colors duration-200 active:brightness-95 group ${
-                index !== 0 ? 'border-l-[3px] border-black/10' : ''
-              }`}
+              id={`dock-${item.id}`}
+              onClick={() => handleClick(item.id)}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 3,
+                padding: "12px 0",
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+                borderLeft: i !== 0 ? BORDER : "none",
+                position: "relative",
+                zIndex: 10,
+                userSelect: "none",
+              }}
             >
-              <motion.div 
-                animate={isActive ? { scale: 1.25, y: -2 } : { scale: 1, y: 0 }}
-                whileHover={{ scale: 1.15, y: -1 }}
-                whileTap={{ scale: 0.9 }}
-                className="relative flex flex-col items-center"
+              <motion.div
+                animate={isActive ? { scale: 1.2, y: -1 } : { scale: 1, y: 0 }}
+                whileTap={{ scale: 0.85 }}
               >
-                <Icon 
-                  size={18} 
-                  strokeWidth={isActive ? 3 : 2.5} 
-                  className="text-black" 
-                />
+                <Icon size={16} strokeWidth={isActive ? 3 : 2} color="#000" />
               </motion.div>
-              <span 
-                className={`text-[8px] font-heading tracking-[0.1em] uppercase transition-all duration-200 ${
-                  isActive ? "text-black font-black" : "text-black/60 font-bold"
-                }`}
-              >
+              <span style={{
+                fontFamily: FONT,
+                fontSize: 6,
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                fontWeight: 900,
+                color: "#000",
+                opacity: isActive ? 1 : 0.35,
+              }}>
                 {item.label}
               </span>
             </button>
           );
         })}
 
-        {/* ACCOUNT BUTTON IN DOCK */}
-        <div className="flex-1 flex border-l-[3px] border-black items-center justify-center relative z-10 bg-white">
+        {/* Account button — overflow visible so dropdown can escape */}
+        <div style={{
+          flex: 1,
+          borderLeft: BORDER,
+          position: "relative",
+          zIndex: 10,
+          background: "#fff",
+          overflow: "visible",
+        }}>
           <ProfileButton inDock onOpenAuth={onOpenAuth} />
         </div>
       </motion.div>
     </div>
   );
 }
-
-
-

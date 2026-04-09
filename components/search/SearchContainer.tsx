@@ -41,17 +41,21 @@ export const LINE_COLORS: Record<
   string,
   { bg: string; text: string; border: string; accent: string }
 > = {
-  blue:    { bg: "bg-[#5294FF]", text: "text-white", border: "border-[#5294FF]", accent: "#5294FF" },
-  yellow:  { bg: "bg-[#FACC00]", text: "text-black", border: "border-[#FACC00]", accent: "#FACC00" },
-  magenta: { bg: "bg-[#CC0066]", text: "text-white", border: "border-[#CC0066]", accent: "#CC0066" },
-  violet:  { bg: "bg-[#7A83FF]", text: "text-white", border: "border-[#7A83FF]", accent: "#7A83FF" },
-  red:     { bg: "bg-[#FF4D50]", text: "text-white", border: "border-[#FF4D50]", accent: "#FF4D50" },
-  green:   { bg: "bg-[#05E17A]", text: "text-white", border: "border-[#05E17A]", accent: "#05E17A" },
-  pink:    { bg: "bg-[#FF4D50]", text: "text-white", border: "border-[#FF4D50]", accent: "#FF4D50" },
-  orange:  { bg: "bg-[#FF7A05]", text: "text-white", border: "border-[#FF7A05]", accent: "#FF7A05" },
-  aqua:    { bg: "bg-[#00ACC1]", text: "text-white", border: "border-[#00ACC1]", accent: "#00ACC1" },
-  grey:    { bg: "bg-[#757575]", text: "text-white", border: "border-[#757575]", accent: "#757575" },
-  rapid:   { bg: "bg-[#FF7A05]", text: "text-white", border: "border-[#FF7A05]", accent: "#FF7A05" },
+  blue:        { bg: "bg-[#5294FF]", text: "text-white", border: "border-[#5294FF]", accent: "#5294FF" },
+  bluebranch:  { bg: "bg-[#5294FF]", text: "text-white", border: "border-[#5294FF]", accent: "#5294FF" },
+  yellow:      { bg: "bg-[#FACC00]", text: "text-black", border: "border-[#FACC00]", accent: "#FACC00" },
+  magenta:     { bg: "bg-[#CC0066]", text: "text-white", border: "border-[#CC0066]", accent: "#CC0066" },
+  violet:      { bg: "bg-[#7A83FF]", text: "text-white", border: "border-[#7A83FF]", accent: "#7A83FF" },
+  red:         { bg: "bg-[#FF4D50]", text: "text-white", border: "border-[#FF4D50]", accent: "#FF4D50" },
+  green:       { bg: "bg-[#05E17A]", text: "text-white", border: "border-[#05E17A]", accent: "#05E17A" },
+  greenbranch: { bg: "bg-[#05E17A]", text: "text-white", border: "border-[#05E17A]", accent: "#05E17A" },
+  pink:        { bg: "bg-[#FF4D50]", text: "text-white", border: "border-[#FF4D50]", accent: "#FF4D50" },
+  pinkbranch:  { bg: "bg-[#FF4D50]", text: "text-white", border: "border-[#FF4D50]", accent: "#FF4D50" },
+  orange:      { bg: "bg-[#FF7A05]", text: "text-white", border: "border-[#FF7A05]", accent: "#FF7A05" },
+  aqua:        { bg: "bg-[#00ACC1]", text: "text-white", border: "border-[#00ACC1]", accent: "#00ACC1" },
+  grey:        { bg: "bg-[#757575]", text: "text-white", border: "border-[#757575]", accent: "#757575" },
+  rapid:       { bg: "bg-[#FF7A05]", text: "text-white", border: "border-[#FF7A05]", accent: "#FF7A05" },
+  "1.2km Skywalk": { bg: "bg-[#9E9E9E]", text: "text-white", border: "border-[#9E9E9E]", accent: "#9E9E9E" },
 };
 
 function getLineColor(lines: string[] | undefined) {
@@ -250,30 +254,40 @@ export default function SearchContainer({
   return (
     <div
       ref={dropdownRef}
-      className="mx-auto w-full max-w-[500px] mt-8 animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col gap-6"
+      className="mx-auto w-full max-w-[500px] mt-2 animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col gap-4"
     >
-      {/* ── MAIN SEARCH CONTAINER ─────────────────────────────────────────── */}
-      <div className="bg-white border-2 border-black shadow-neo relative shrink-0">
-        <div className="h-8 bg-black flex items-center px-3 justify-between">
-          <span className="font-heading text-[8px] text-white tracking-widest">
-            SYSTEM // CONTROL_PANEL_v<span className="font-numbers">1.0</span>
+      {/* ── MAIN SEARCH CONTAINER ── */}
+      <div style={{ background:"#fff", border:"3px solid #000", boxShadow:"6px 6px 0 #000", position:"relative", flexShrink:0 }}>
+        {/* Header bar — accent color */}
+        <div style={{
+          backgroundColor: "var(--accent, #FF2E88)",
+          borderBottom: "3px solid #000",
+          padding: "8px 16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+          <span style={{ fontFamily:"var(--heading-font),monospace", fontSize:8, color:"#000", letterSpacing:"0.18em", fontWeight:900 }}>
+            ROUTE_FINDER // CTRL_PANEL
           </span>
-          <div className="h-2 w-2 bg-brutal-yellow" />
+          <div style={{ display:"flex", gap:4 }}>
+            <div style={{ width:12, height:12, background:"#000" }} />
+            <div style={{ width:12, height:12, background:"#fff", border:"2px solid #000" }} />
+          </div>
         </div>
 
-        <div className="p-8 space-y-8 relative">
-          {/* STRUCTURAL CONNECTOR */}
-          <div className="absolute left-[86px] top-40 h-12 w-1 bg-black z-0 transition-all duration-300" />
+        <div className="p-6 space-y-6 relative">
+          <div className="absolute left-[78px] top-36 h-10 w-1 bg-black z-0" />
 
           {/* ── 1. FROM STATION ────────────────────────────────────────────── */}
           <div className="relative z-30">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-3">
               <div className="h-3 w-3 bg-black" />
-              <label className="system-text block font-heading text-[9px] opacity-60">
+              <label className="font-heading text-[9px] tracking-widest uppercase font-black opacity-50">
                 FROM STATION
               </label>
             </div>
-            <div className="h-16 w-full bg-white border-2 border-black flex items-center px-4 relative focus-within:shadow-neo transition-all">
+            <div className="h-14 w-full bg-white border-[3px] border-black flex items-center px-4 relative focus-within:shadow-[4px_4px_0_#000] transition-all">
               <input
                 type="text"
                 value={from}
@@ -293,12 +307,15 @@ export default function SearchContainer({
 
             {/* FROM AUTOCOMPLETE */}
             {activeDropdown === "from" && from.length > 0 && (
-              <div className="absolute top-[80px] left-0 w-full bg-white border-2 border-black shadow-neo flex flex-col z-50 max-h-[200px] overflow-y-auto">
+              <div className="absolute top-[68px] left-0 w-full bg-white border-[3px] border-black shadow-[4px_4px_0_#000] flex flex-col z-50 max-h-[200px] overflow-y-auto">
                 {getFilteredStations(from).length > 0 ? (
                   getFilteredStations(from).map((station, i) => (
                     <div
                       key={i}
-                      className="px-4 py-3 border-b-2 border-black hover:bg-brutal-blue cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors"
+                      className="px-4 py-3 border-b-[2px] border-black/20 cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors hover:text-black"
+                      style={{  }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--bg-accent)")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}
                       onClick={() => {
                         setFrom(station.original);
                         setSuggestion(null);
@@ -318,24 +335,25 @@ export default function SearchContainer({
           </div>
 
           {/* ── 2. SWAP BUTTON ─────────────────────────────────────────────── */}
-          <div className="flex justify-start pl-[30px] relative z-20">
+          <div className="flex justify-start pl-[28px] relative z-20">
             <button
               onClick={handleSwap}
-              className="h-12 w-12 bg-brutal-blue border-2 border-black flex items-center justify-center shadow-neo hover:-translate-x-px hover:-translate-y-px active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer group"
+              className="h-11 w-11 border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0_#000] hover:-translate-x-px hover:-translate-y-px active:translate-x-px active:translate-y-px active:shadow-none transition-all cursor-pointer"
+              style={{ backgroundColor: "var(--bg-accent)" }}
             >
-              <ArrowUpDown className="h-5 w-5 text-black group-hover:scale-110 group-active:scale-90 transition-transform" />
+              <ArrowUpDown className="h-4 w-4 text-black" />
             </button>
           </div>
 
           {/* ── 3. TO STATION ──────────────────────────────────────────────── */}
           <div className="relative z-20">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-3">
               <div className="h-3 w-3 bg-black" />
-              <label className="system-text block font-heading text-[9px] opacity-60">
+              <label className="font-heading text-[9px] tracking-widest uppercase font-black opacity-50">
                 TO STATION
               </label>
             </div>
-            <div className="h-16 w-full bg-white border-2 border-black flex items-center px-4 focus-within:shadow-neo transition-all relative">
+            <div className="h-14 w-full bg-white border-[3px] border-black flex items-center px-4 focus-within:shadow-[4px_4px_0_#000] transition-all relative">
               <input
                 type="text"
                 value={to}
@@ -355,12 +373,14 @@ export default function SearchContainer({
 
             {/* TO AUTOCOMPLETE */}
             {activeDropdown === "to" && to.length > 0 && (
-              <div className="absolute top-[80px] left-0 w-full bg-white border-2 border-black shadow-neo flex flex-col z-50 max-h-[200px] overflow-y-auto">
+              <div className="absolute top-[68px] left-0 w-full bg-white border-[3px] border-black shadow-[4px_4px_0_#000] flex flex-col z-50 max-h-[200px] overflow-y-auto">
                 {getFilteredStations(to).length > 0 ? (
                   getFilteredStations(to).map((station, i) => (
                     <div
                       key={i}
-                      className="px-4 py-3 border-b-2 border-black hover:bg-brutal-blue cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors"
+                      className="px-4 py-3 border-b-[2px] border-black/20 cursor-pointer font-heading text-[10px] uppercase text-black last:border-b-0 transition-colors"
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--bg-accent)")}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = "")}
                       onClick={() => {
                         setTo(station.original);
                         setSuggestion(null);
@@ -380,14 +400,14 @@ export default function SearchContainer({
           </div>
 
           {/* ── 4. FIND ROUTE BUTTON ───────────────────────────────────────── */}
-          <div className="pt-4 relative z-10">
+          <div className="pt-2 relative z-10">
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="h-16 w-full bg-brutal-yellow border-2 border-black flex items-center justify-center shadow-neo hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg active:translate-x-px active:translate-y-px active:shadow-none disabled:opacity-75 disabled:cursor-not-allowed transition-all cursor-pointer group"
+              className="h-14 w-full bg-brutal-yellow border-[3px] border-black flex items-center justify-center shadow-[4px_4px_0_#000] hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-75 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
-              <span className="font-heading text-[10px] tracking-widest text-black group-hover:scale-105 transition-transform">
-                {loading ? "SEARCHING..." : "FIND ROUTE"}
+              <span className="font-heading text-[11px] tracking-widest text-black font-black">
+                {loading ? "SEARCHING..." : "▶ FIND ROUTE"}
               </span>
             </button>
           </div>

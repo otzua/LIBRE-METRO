@@ -1,102 +1,150 @@
 @import "tailwindcss";
 
 @theme {
-  /* neobrutalism.dev Official Palette */
-  /* Background: light blue-tinted white (oklch 93.46% 0.0304 254.32) */
-  --color-background: #dde8ff;
-  --color-foreground: #000000;
+  /* Neo-Brutalism Design Tokens */
+  --color-brutal-main:     #5294FF;
+  --color-brutal-yellow:   #FACC00;
+  --color-brutal-pink:     #FF2E88;
+  --color-brutal-red:      #FF4D50;
+  --color-brutal-blue:     #5294FF;
+  --color-brutal-green:    #05E17A;
+  --color-brutal-orange:   #FF7A05;
+  --color-brutal-lavender: #7A83FF;
 
-  /* Main accent — neobrutalism.dev blue */
-  --color-brutal-main: #5294FF;
+  --font-heading: var(--heading-font), monospace;
+  --font-body:    var(--body-font), sans-serif;
+  --font-numbers: var(--numbers-font), sans-serif;
 
-  /* Accent colors from neobrutalism.dev chart palette */
-  --color-brutal-yellow: #FACC00;   /* chart-3 / amber-yellow */
-  --color-brutal-pink:   #FF4D50;   /* chart-2 / red */
-  --color-brutal-blue:   #5294FF;   /* main blue */
-  --color-brutal-green:  #05E17A;   /* chart-4 / green */
-  --color-brutal-orange: #FF7A05;   /* chart-orange */
-  --color-brutal-lavender: #7A83FF; /* chart-5 / indigo-violet */
-
-  --font-heading: var(--heading-font), "cursive";
-  --font-body: var(--body-font), "sans-serif";
-  --font-numbers: var(--numbers-font), "sans-serif";
-
-  /* Neo-Brutalist Sharpness */
   --radius-none: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
+  --radius-sm:   0px;
+  --radius-md:   0px;
+  --radius-lg:   0px;
 
-  /* Hard Shadows - Black as per reference */
-  --shadow-neo: 4px 4px 0px 0px #000000;
-  --shadow-neo-lg: 8px 8px 0px 0px #000000;
+  --shadow-neo:    4px 4px 0px 0px #000000;
+  --shadow-neo-lg: 6px 6px 0px 0px #000000;
+  --shadow-neo-xl: 8px 8px 0px 0px #000000;
 }
 
-@layer base {
-  *, ::after, ::before {
-    @apply border-black;
-  }
+/* ─── THEME CLASSES on <html> ─────────────────────────────────────────────── */
+/* Applied via JS before first paint — sets ALL theme variables              */
 
-  :root {
-    color-scheme: light;
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased selection:bg-brutal-yellow selection:text-black font-body;
-    margin: 0;
-    padding: 0;
-    
-    /* Clean Neubrutalist Background — blue-tinted per neobrutalism.dev */
-    background-color: var(--color-background);
-    background-image: 
-      radial-gradient(circle, rgba(0, 0, 82, 0.10) 1.5px, transparent 1.5px);
-    background-size: 24px 24px;
-    background-attachment: fixed;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading tracking-widest uppercase leading-relaxed;
-  }
-
-  label, .system-text {
-    @apply font-heading text-[10px] tracking-[0.15em] uppercase font-bold text-foreground opacity-60;
-  }
+html,
+html.theme-pink {
+  --accent: #FF2E88;
+  --dot:    #FF2E88;
+  background-color: #FFFEF0;
 }
 
-
-@layer components {
-  .card {
-    @apply bg-white border-2 border-black shadow-neo p-6 transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
-  }
-
-  .card-yellow { @apply bg-brutal-yellow border-2 border-black shadow-neo p-6 font-bold; }
-  .card-pink { @apply bg-brutal-pink border-2 border-black shadow-neo p-6 font-bold; }
-  .card-blue { @apply bg-brutal-blue border-2 border-black shadow-neo p-6 font-bold; }
-  .card-green { @apply bg-brutal-green border-2 border-black shadow-neo p-6 font-bold; }
-
-  .btn-brutal {
-    @apply inline-block bg-brutal-yellow text-black border-2 border-black px-6 py-2 font-black uppercase tracking-widest shadow-neo hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer;
-  }
+html.theme-yellow {
+  --accent: #FACC00;
+  --dot:    #FACC00;
+  background-color: #FFFFF0;
 }
 
-/* ── MAP LAYOUT SAFETY ─────────────────────────────────────────────── */
-/* Force Leaflet to respect our UI layers (z-50 for Dock/Modals) */
-.leaflet-container, 
-.leaflet-pane, 
+html.theme-blue {
+  --accent: #4DA3FF;
+  --dot:    #4DA3FF;
+  background-color: #EEF4FF;
+}
+
+/* ─── BASE ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: #000000;
+  font-family: var(--body-font), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+
+  /* DOT GRID — uses theme dot color */
+  background-image: radial-gradient(circle, var(--dot, #FF2E88) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-attachment: fixed;
+  /* no background-color here — inherited from html */
+}
+
+body::selection,
+body *::selection {
+  background-color: var(--accent, #FF2E88);
+  color: #000;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font), monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000;
+  margin: 0;
+}
+
+/* ─── SCROLLBAR ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; }
+::-webkit-scrollbar-track { background: #fff; border-left: 2px solid #000; }
+::-webkit-scrollbar-thumb { background: var(--accent, #FF2E88); border: 1px solid #000; }
+
+/* ─── COMPONENT UTILITIES ────────────────────────────────────────────────── */
+
+/* Raw neo-brutalist card */
+.nb-card {
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+}
+
+/* Accent-filled card */
+.nb-card-accent {
+  background: var(--accent, #FF2E88);
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  color: #000;
+}
+
+/* Brutal button base */
+.nb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 3px solid #000;
+  box-shadow: 4px 4px 0 #000;
+  font-family: var(--heading-font), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 900;
+  cursor: pointer;
+  background: var(--accent, #FF2E88);
+  color: #000;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.nb-btn:hover  { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #000; }
+.nb-btn:active { transform: translate(2px,2px);  box-shadow: none; }
+
+.nb-btn-yellow {
+  background: #FACC00 !important;
+}
+
+.nb-btn-white {
+  background: #fff !important;
+}
+
+/* ─── MAP / LEAFLET SAFETY ───────────────────────────────────────────────── */
+.leaflet-container,
+.leaflet-pane,
 .leaflet-control-container,
 .leaflet-top,
 .leaflet-bottom {
   z-index: 1 !important;
 }
-
 .leaflet-control-container .leaflet-top,
 .leaflet-control-container .leaflet-bottom {
   z-index: 2 !important;
 }
-
-
-
-
-
-
-

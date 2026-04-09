@@ -69,50 +69,58 @@ export default function MapView({ highlightedPath = [], activeLine, className = 
       // Zoom controls (custom position)
       L.control.zoom({ position: "bottomright" }).addTo(map);
 
-      // ── Load coord table then draw all lines ─────────────
-      const coordMap = await loadStopCoords();
-      if (cancelled) return;
+      // ── Load shapes then draw all lines ─────────────
+      try {
+        const [shapeRes, coordMap] = await Promise.all([
+          fetch("/line-shapes.json").then(res => res.json()),
+          loadStopCoords()
+        ]);
+        if (cancelled) return;
 
-      for (const line of METRO_LINES) {
-        const coords: [number, number][] = line.stopIds
-          .map(id => coordMap.get(id))
-          .filter((s): s is StopCoord => !!s)
-          .map(s => [s.lat, s.lon]);
+        for (const line of METRO_LINES) {
+          const shapeCoords: [number, number][] = shapeRes[line.id] || [];
+          const stationCoords: [number, number][] = line.stopIds
+            .map(id => coordMap.get(id))
+            .filter((s): s is StopCoord => !!s)
+            .map(s => [s.lat, s.lon]);
 
-        if (coords.length < 2) continue;
+          if (stationCoords.length < 2) continue;
 
-        // Ghost polyline (all lines, faint)
-        const poly = L.polyline(coords, {
-          color: line.color,
-          weight: 5,
-          opacity: 0.35,
-          smoothFactor: 1.5,
-        }).addTo(map);
+          // Ghost polyline: Use curvy path if available, otherwise straight
+          const poly = L.polyline(shapeCoords.length > 0 ? shapeCoords : stationCoords, {
+            color: line.color,
+            weight: 5,
+            opacity: 0.35,
+            smoothFactor: 1.5,
+          }).addTo(map);
 
-        // Station markers
-        const markers: CircleMarker[] = line.stopIds
-          .map(id => coordMap.get(id))
-          .filter((s): s is StopCoord => !!s)
-          .map(s => {
-            const isHub = INTERCHANGE_NAMES.has(s.name.toLowerCase());
-            return L.circleMarker([s.lat, s.lon], {
-              radius: isHub ? 6 : 3.5,
-              color: "#000",
-              weight: isHub ? 2 : 1,
-              fillColor: isHub ? "#fff" : line.color,
-              fillOpacity: 1,
-              opacity: 0.4,
-            })
-            .addTo(map)
-            .bindTooltip(s.name, {
-              permanent: false,
-              direction: "top",
-              className: "metro-tooltip",
-              offset: [0, -6],
+          // Station markers
+          const markers: CircleMarker[] = line.stopIds
+            .map(id => coordMap.get(id))
+            .filter((s): s is StopCoord => !!s)
+            .map(s => {
+              const isHub = INTERCHANGE_NAMES.has(s.name.toLowerCase());
+              return L.circleMarker([s.lat, s.lon], {
+                radius: isHub ? 6 : 3.5,
+                color: "#000",
+                weight: isHub ? 2 : 1,
+                fillColor: isHub ? "#fff" : line.color,
+                fillOpacity: 1,
+                opacity: 0.4,
+              })
+              .addTo(map)
+              .bindTooltip(s.name, {
+                permanent: false,
+                direction: "top",
+                className: "metro-tooltip",
+                offset: [0, -6],
+              });
             });
-          });
 
-        linesRef.current.set(line.id, { poly, markers });
+          linesRef.current.set(line.id, { poly, markers });
+        }
+      } catch (err) {
+        console.error("Failed to load map data:", err);
       }
 
       mapRef.current = map;

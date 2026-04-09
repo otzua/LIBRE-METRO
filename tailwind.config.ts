@@ -10,7 +10,7 @@ const config: Config = {
     extend: {
       colors: {
         /* neobrutalism.dev official palette */
-        background:         "#dde8ff",  /* light blue-tinted bg */
+        background:         "#ffdbed",  /* light pink bg */
         foreground:         "#000000",
         "brutal-main":      "#5294FF",  /* neobrutalism.dev main blue */
         "brutal-yellow":    "#FACC00",  /* chart amber-yellow */

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
-import { MetroAPI } from "@/lib/metro";
+import { MetroAPI, STOPS_TO_BACKEND_MAP } from "@/lib/metro";
 import {
   buildStationIndex,
   parseStopsTxt,
@@ -30,7 +30,7 @@ async function getLocalIndex(): Promise<StationRecord[]> {
 }
 
 // ─── Backend index (for route resolution — canonical names the API accepts) ───
-// Built lazily; if the backend is unreachable we fall back to raw user input.
+// Built lazily from the Netlify backend's /route/stations endpoint.
 let _backendIndex: StationRecord[] | null = null;
 let _backendLoading = false;
 let _backendLoadPromise: Promise<StationRecord[]> | null = null;
@@ -56,6 +56,42 @@ async function getBackendIndex(): Promise<StationRecord[]> {
   return _backendLoadPromise;
 }
 
+/**
+ * Resolve a user-supplied station name to the backend's canonical name.
+ * 
+ * Resolution order:
+ * 1. Try fuzzy match against backend index → exact backend station name
+ * 2. Try fuzzy match against local stops.txt → then map via STOPS_TO_BACKEND_MAP
+ * 3. Try direct STOPS_TO_BACKEND_MAP lookup
+ * 4. Fall back to raw input
+ */
+function resolveToBackendName(
+  rawName: string,
+  backendIndex: StationRecord[],
+  localIndex: StationRecord[]
+): string {
+  // 1. Direct match against backend stations
+  const backendMatch = resolveStationName(rawName, backendIndex);
+  if (backendMatch) return backendMatch;
+
+  // 2. Match against local stops.txt, then translate
+  const localMatch = resolveStationName(rawName, localIndex);
+  if (localMatch) {
+    // Check if the stops.txt name needs translation
+    const mapped = STOPS_TO_BACKEND_MAP[localMatch];
+    if (mapped) return mapped;
+    // The local name might already be valid for the backend
+    return localMatch;
+  }
+
+  // 3. Direct map lookup
+  const directMap = STOPS_TO_BACKEND_MAP[rawName.trim()];
+  if (directMap) return directMap;
+
+  // 4. Fallback
+  return rawName;
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -74,10 +110,12 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Resolve against backend index (non-blocking — falls back to raw input)
+      // Resolve against backend index (canonical) + local index (stops.txt)
       const backendIndex = await getBackendIndex();
-      const resolvedFrom = resolveStationName(rawFrom, backendIndex) ?? rawFrom;
-      const resolvedTo   = resolveStationName(rawTo,   backendIndex) ?? rawTo;
+      const localIndex   = await getLocalIndex();
+
+      const resolvedFrom = resolveToBackendName(rawFrom, backendIndex, localIndex);
+      const resolvedTo   = resolveToBackendName(rawTo, backendIndex, localIndex);
 
       console.debug(
         `[DMRC API] route — from: "${rawFrom}" → "${resolvedFrom}"  |  to: "${rawTo}" → "${resolvedTo}"`
@@ -86,7 +124,9 @@ export async function GET(request: NextRequest) {
       const result = await metroApi.getRoute(resolvedFrom, resolvedTo);
 
       if (result.status !== 200) {
-        result.message = metroApi.getErrorByCode(result.status);
+        if (!result.message) {
+          result.message = metroApi.getErrorByCode(result.status);
+        }
       }
 
       return NextResponse.json(result);
@@ -94,37 +134,72 @@ export async function GET(request: NextRequest) {
 
     // ── /api/dmrc?type=stations ─────────────────────────────────────────────
     if (type === "stations") {
-      const line = searchParams.get("line") || searchParams.get("value");
-      if (!line) {
-        return NextResponse.json(
-          { status: 400, message: "Missing 'line' or 'value' parameter." },
-          { status: 400 }
-        );
-      }
-      const result = await metroApi.getStationsByLine(line);
-      return NextResponse.json(result);
+      // The Netlify backend doesn't support per-line queries,
+      // so we return ALL stations when any line is requested.
+      const stations = await metroApi.getAllStations();
+      return NextResponse.json({ status: 200, stations });
     }
 
     // ── /api/dmrc?type=all-stations ─────────────────────────────────────────
-    // Serves local stops.txt — instant response, no backend dependency.
-    // The client uses this for autocomplete only; fuzzy resolution on the
-    // server bridges any name differences before forwarding to the API.
     if (type === "all-stations") {
+      // Prefer local stops.txt (faster, no network), fall back to backend
       const local = await getLocalIndex();
       if (local.length > 0) {
         const stations = local.map((s) => s.original).sort();
         return NextResponse.json({ status: 200, stations });
       }
-      // Fallback: ask backend (stops.txt unreadable)
       const stations = await metroApi.getAllStations();
       return NextResponse.json({ status: 200, stations });
+    }
+
+    // ── /api/dmrc?type=schedule ─────────────────────────────────────────────
+    if (type === "schedule") {
+      const stationName = searchParams.get("station");
+      if (!stationName) {
+        return NextResponse.json(
+          { status: 400, message: "Missing 'station' parameter." },
+          { status: 400 }
+        );
+      }
+
+      const stopsPath = path.join(process.cwd(), "public", "stops.txt");
+      const stopsCsv = await readFile(stopsPath, "utf-8");
+      const stopRows = stopsCsv.split("\n").filter(Boolean).slice(1);
+      
+      const targetStationName = stationName.toLowerCase().trim();
+      let stopId = "";
+      for (const row of stopRows) {
+        const cols = row.split(",");
+        if (cols[2]?.toLowerCase().trim() === targetStationName) {
+          stopId = cols[0];
+          break;
+        }
+      }
+
+      if (!stopId) {
+        return NextResponse.json(
+          { status: 404, message: "Station not found in database." },
+          { status: 404 }
+        );
+      }
+
+      const schedPath = path.join(process.cwd(), "public", "station-schedules.json");
+      const schedData = JSON.parse(await readFile(schedPath, "utf-8"));
+      const schedule = schedData[stopId] || [];
+
+      return NextResponse.json({
+        status: 200,
+        station: stationName,
+        stopId,
+        schedule
+      });
     }
 
     return NextResponse.json(
       {
         status: 400,
         message:
-          "Invalid or missing 'type' parameter. Use 'route', 'stations', or 'all-stations'.",
+          "Invalid or missing 'type' parameter. Use 'route', 'stations', 'all-stations', or 'schedule'.",
       },
       { status: 400 }
     );
