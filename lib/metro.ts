@@ -19,6 +19,9 @@ export interface MetroRouteResponse {
   time?: number;
   message?: string;
   error?: string;
+  mode?: "fastest" | "comfort";
+  interchangeCount?: number;
+  pathCoords?: { station: string; lat: number | null; lon: number | null }[];
 }
 
 export type MetroLine = 
@@ -196,7 +199,7 @@ export class MetroAPI {
    * Fetches the shortest route between two stations.
    * Backend endpoint: GET /route?from=X&to=Y
    */
-  async getRoute(from: string, to: string): Promise<MetroRouteResponse> {
+  async getRoute(from: string, to: string, mode: "fastest" | "comfort" = "fastest"): Promise<MetroRouteResponse> {
     const standardizedFrom = this.standardizeStationName(from);
     const standardizedTo = this.standardizeStationName(to);
 
@@ -208,14 +211,13 @@ export class MetroAPI {
       const url = new URL(`${this.baseUrl}/route`);
       url.searchParams.append("from", standardizedFrom);
       url.searchParams.append("to", standardizedTo);
+      if (mode === "comfort") url.searchParams.append("mode", "comfort");
 
-      console.debug(`[MetroAPI] getRoute: ${standardizedFrom} → ${standardizedTo}`);
+      console.debug(`[MetroAPI] getRoute (${mode}): ${standardizedFrom} → ${standardizedTo}`);
 
       const response = await this.apiFetch(url.toString());
       const data = await response.json();
 
-      // Backend returns { path, time, line1, line2, interchange } without a status field.
-      // Normalize to include status.
       if (data.error) {
         return { status: 404, message: data.error };
       }
@@ -228,6 +230,9 @@ export class MetroAPI {
         line2: data.line2 || [],
         interchange: data.interchange || [],
         lineEnds: data.lineEnds || [],
+        mode: data.mode || mode,
+        interchangeCount: data.interchangeCount ?? data.interchange?.length ?? 0,
+        pathCoords: data.pathCoords || [],
       };
     } catch (error) {
       console.error("MetroAPI Error (getRoute):", error);

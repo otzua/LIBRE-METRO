@@ -33,6 +33,9 @@ export interface MetroRouteResponse {
   path?: string[];
   time?: number;
   message?: string;
+  mode?: "fastest" | "comfort";
+  interchangeCount?: number;
+  pathCoords?: { station: string; lat: number | null; lon: number | null }[];
 }
 
 // ─── Metro line colors ────────────────────────────────────────────────────────
@@ -83,6 +86,7 @@ export default function SearchContainer({
     name: string;
   } | null>(null);
   const [routeResult, setRouteResult] = useState<MetroRouteResponse | null>(null);
+  const [routeMode, setRouteMode] = useState<"fastest" | "comfort">("fastest");
 
   // Station index for client-side autocomplete + pre-validation
   const [stationIndex, setStationIndex] = useState<StationRecord[]>([]);
@@ -174,7 +178,7 @@ export default function SearchContainer({
 
     try {
       const response = await fetch(
-        `/api/dmrc?type=route&from=${encodeURIComponent(from.trim())}&to=${encodeURIComponent(to.trim())}`
+        `/api/dmrc?type=route&from=${encodeURIComponent(from.trim())}&to=${encodeURIComponent(to.trim())}&mode=${routeMode}`
       );
       const data: MetroRouteResponse = await response.json();
 
@@ -192,7 +196,7 @@ export default function SearchContainer({
     } finally {
       setLoading(false);
     }
-  }, [from, to, stationIndex]);
+  }, [from, to, stationIndex, routeMode]);
 
   // ── Autocomplete suggestions ─────────────────────────────────────────────
   const getFilteredStations = (query: string): StationRecord[] => {
@@ -399,15 +403,76 @@ export default function SearchContainer({
             )}
           </div>
 
-          {/* ── 4. FIND ROUTE BUTTON ───────────────────────────────────────── */}
+          {/* ── 4. MODE TOGGLE ─────────────────────────────────────────────── */}
+          <div className="pt-2 relative z-10">
+            <div style={{ display: "flex", border: "3px solid #000", boxShadow: "3px 3px 0 #000", overflow: "hidden" }}>
+              <button
+                onClick={() => setRouteMode("fastest")}
+                style={{
+                  flex: 1,
+                  padding: "10px 8px",
+                  background: routeMode === "fastest" ? "#FACC00" : "#fff",
+                  border: "none",
+                  borderRight: "2px solid #000",
+                  cursor: "pointer",
+                  transition: "background 0.15s",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 3,
+                }}
+              >
+                <span style={{ fontSize: 14 }}>⚡</span>
+                <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 7, fontWeight: 900, letterSpacing: "0.15em", color: "#000" }}>FASTEST</span>
+                <span style={{ fontFamily: "var(--body-font),sans-serif", fontSize: 8, color: "rgba(0,0,0,0.45)" }}>Min time</span>
+              </button>
+              <button
+                onClick={() => setRouteMode("comfort")}
+                style={{
+                  flex: 1,
+                  padding: "10px 8px",
+                  background: routeMode === "comfort" ? "#5294FF" : "#fff",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "background 0.15s",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 3,
+                }}
+              >
+                <span style={{ fontSize: 14 }}>🛋️</span>
+                <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 7, fontWeight: 900, letterSpacing: "0.15em", color: routeMode === "comfort" ? "#fff" : "#000" }}>COMFORT</span>
+                <span style={{ fontFamily: "var(--body-font),sans-serif", fontSize: 8, color: routeMode === "comfort" ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.45)" }}>Fewest changes</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ── 5. FIND ROUTE BUTTON ───────────────────────────────────────── */}
           <div className="pt-2 relative z-10">
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="h-14 w-full bg-brutal-yellow border-[3px] border-black flex items-center justify-center shadow-[4px_4px_0_#000] hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[6px_6px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-75 disabled:cursor-not-allowed transition-all cursor-pointer"
+              style={{
+                height: 56,
+                width: "100%",
+                background: routeMode === "comfort" ? "#5294FF" : "#FACC00",
+                border: "3px solid #000",
+                boxShadow: "4px 4px 0 #000",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.75 : 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                transition: "transform 0.1s, box-shadow 0.1s",
+              }}
+              onMouseEnter={e => { if (!loading) { (e.currentTarget as HTMLElement).style.transform = "translate(-2px,-2px)"; (e.currentTarget as HTMLElement).style.boxShadow = "6px 6px 0 #000"; } }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ""; (e.currentTarget as HTMLElement).style.boxShadow = "4px 4px 0 #000"; }}
             >
-              <span className="font-heading text-[11px] tracking-widest text-black font-black">
-                {loading ? "SEARCHING..." : "▶ FIND ROUTE"}
+              <span style={{ fontSize: routeMode === "comfort" ? 16 : 14 }}>{routeMode === "comfort" ? "🛋️" : "⚡"}</span>
+              <span style={{ fontFamily: "var(--heading-font),monospace", fontSize: 11, letterSpacing: "0.15em", color: routeMode === "comfort" ? "#fff" : "#000", fontWeight: 900 }}>
+                {loading ? "SEARCHING..." : routeMode === "comfort" ? "FIND COMFORT ROUTE" : "▶ FIND ROUTE"}
               </span>
             </button>
           </div>

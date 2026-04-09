@@ -102,6 +102,7 @@ export async function GET(request: NextRequest) {
     if (type === "route") {
       const rawFrom = searchParams.get("from");
       const rawTo   = searchParams.get("to");
+      const mode    = searchParams.get("mode") === "comfort" ? "comfort" : "fastest";
 
       if (!rawFrom || !rawTo) {
         return NextResponse.json(
@@ -110,7 +111,6 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Resolve against backend index (canonical) + local index (stops.txt)
       const backendIndex = await getBackendIndex();
       const localIndex   = await getLocalIndex();
 
@@ -118,10 +118,10 @@ export async function GET(request: NextRequest) {
       const resolvedTo   = resolveToBackendName(rawTo, backendIndex, localIndex);
 
       console.debug(
-        `[DMRC API] route — from: "${rawFrom}" → "${resolvedFrom}"  |  to: "${rawTo}" → "${resolvedTo}"`
+        `[DMRC API] route (${mode}) — from: "${rawFrom}" → "${resolvedFrom}"  |  to: "${rawTo}" → "${resolvedTo}"`
       );
 
-      const result = await metroApi.getRoute(resolvedFrom, resolvedTo);
+      const result = await metroApi.getRoute(resolvedFrom, resolvedTo, mode);
 
       if (result.status !== 200) {
         if (!result.message) {
